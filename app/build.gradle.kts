@@ -3,6 +3,19 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+import java.util.Properties
+
+/**
+ * Release signing comes from `keystore.properties` in the project root (git-ignored, see
+ * .gitignore) with keys: storeFile, storePassword, keyAlias, keyPassword.
+ *
+ * When the file is absent - a fresh clone or CI without secrets - the release build type
+ * simply has no signing config and produces an unsigned APK instead of failing.
+ */
+val releaseSigning: Properties? = rootProject.file("keystore.properties").let { file ->
+    if (file.exists()) Properties().apply { file.inputStream().use { load(it) } } else null
+}
+
 android {
     namespace = "com.voicedm.app"
     compileSdk = 37
@@ -18,6 +31,17 @@ android {
         vectorDrawables.useSupportLibrary = true
     }
 
+    signingConfigs {
+        if (releaseSigning != null) {
+            create("release") {
+                storeFile = rootProject.file(releaseSigning.getProperty("storeFile"))
+                storePassword = releaseSigning.getProperty("storePassword")
+                keyAlias = releaseSigning.getProperty("keyAlias")
+                keyPassword = releaseSigning.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -26,6 +50,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            signingConfig = signingConfigs.findByName("release")
         }
         debug {
             applicationIdSuffix = ".debug"

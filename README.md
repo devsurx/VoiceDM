@@ -20,28 +20,18 @@ Grab the prebuilt APK from the releases page:
 
 **→ [github.com/devsurx/VoiceDM/releases](https://github.com/devsurx/VoiceDM/releases)**
 
-Current release: **v1.0.0** — R8-minified, 1.5 MB, `versionName 1.0.0`, minSdk 26 / targetSdk 37.
+Current release: **[v1.0.0](https://github.com/devsurx/VoiceDM/releases/tag/v1.0.0)** —
+R8-minified, **signed**, 1.5 MB, `versionName 1.0.0`, minSdk 26 / targetSdk 37.
 
-> ### ⚠️ The release APK ships unsigned
->
-> Android will not install an unsigned APK. Re-sign it once with your own key —
->
-> ```bash
-> # one-time: create a keystore (keep it and its password safe!)
-> keytool -genkeypair -v -keystore release.jks -keyalg RSA -keysize 2048 \
->         -validity 10000 -alias voicedm
->
-> # sign
-> $ANDROID_HOME/build-tools/37.0.0/apksigner sign \
->         --ks release.jks --out VoiceDM-1.0.0-signed.apk \
->         VoiceDM-1.0.0-unsigned.apk
->
-> adb install VoiceDM-1.0.0-signed.apk
-> ```
->
-> Always reuse the **same keystore** for future versions, otherwise Android treats the new
-> build as a different app and refuses to install it over the old one. Release notes for
-> each version live on the releases page.
+```bash
+adb install VoiceDM-1.0.0.apk      # or copy it to the phone and open it
+```
+
+Signer certificate: `CN=VoiceDM, OU=VoiceDM, O=devsurx, C=US`
+(SHA-256 `6d6e4e4c0b67b8db766821262c12dbb60723c12be754cf76464b9b62fe2baee9`).
+
+Releases are signed with the project keystore — see [Releasing](#releasing) for how that
+works and what must never be committed.
 
 ---
 
@@ -55,6 +45,7 @@ Current release: **v1.0.0** — R8-minified, 1.5 MB, `versionName 1.0.0`, minSdk
 - [Settings reference](#settings-reference)
 - [Widget & quick-settings tile](#widget--quick-settings-tile)
 - [Architecture](#architecture)
+- [Releasing](#releasing)
 - [Tests](#tests)
 - [Known limitations](#known-limitations)
 
@@ -75,7 +66,7 @@ Nothing else: no account is shared with VoiceDM, no network access at all.
 ```bash
 ./gradlew :app:assembleDebug      # debug APK
 ./gradlew :app:testDebugUnitTest  # JVM unit tests
-./gradlew :app:assembleRelease    # minified release APK (unsigned - see Download above)
+./gradlew :app:assembleRelease    # signed release APK (see Releasing)
 ```
 
 Requirements: JDK 17+ and an Android SDK with `platforms;android-37` (the path goes into
@@ -222,6 +213,34 @@ Design rules used throughout:
   the persistent notification all read the same `StateFlow`.
 * **No DI framework / no KSP / no Room.** `AppContainer` is ~30 lines and everything else
   is constructor-injected.
+
+## Releasing
+
+Release builds are signed automatically when the signing material is present:
+
+| File | Purpose | In git? |
+|---|---|---|
+| `keystore/voicedm-release.jks` | The signing key (PKCS12, alias `voicedm`) | ❌ ignored |
+| `keystore.properties` | `storeFile`, `storePassword`, `keyAlias`, `keyPassword` | ❌ ignored |
+
+`app/build.gradle.kts` reads `keystore.properties` from the project root. **If the file is
+missing** (a fresh clone, CI without secrets) the release build type simply gets no signing
+config and produces an unsigned APK instead of failing the build.
+
+Cutting a release:
+
+```bash
+./gradlew :app:assembleRelease
+apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk  # sanity check
+gh release create vX.Y.Z app/build/outputs/apk/release/app-release.apk \
+     --title "VoiceDM X.Y.Z" --notes-file notes.md
+```
+
+> ⚠️ **Back up `keystore/voicedm-release.jks` and its password somewhere safe, offline.**
+> Android only accepts updates signed with the same key — lose them and every future build
+> becomes a different app that cannot be installed over the installed one. Never commit
+> either file (`.gitignore` already blocks `keystore/`, `*.jks`, `*.keystore` and
+> `keystore.properties`).
 
 ## Tests
 
