@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="window_background">#FF101014</color>
+
+    <string name="app_name">VoiceDM</string>
+
+    <!-- Notification channels -->
+    <string name="channel_service_name">VoiceDM running</string>
+    <string name="channel_service_description">Persistent status while VoiceDM is listening for messages.</string>
+    <string name="channel_alerts_name">VoiceDM alerts</string>
+    <string name="channel_alerts_description">Errors such as a failed reply or broken automation.</string>
+
+    <!-- Notification listener -->
+    <string name="notification_listener_label">VoiceDM notification access</string>
+
+    <!-- Accessibility (Mode B) -->
+    <string name="accessibility_service_label">VoiceDM voice-note sending (Mode B)</string>
+    <string name="accessibility_service_description">Lets VoiceDM open your chosen chat in Instagram and hold the record button so it can send your reply as a real voice note (Mode B). VoiceDM never reads or sends anything else. Turn this off to use Mode A only.</string>
+
+    <!-- Quick settings tile -->
+    <string name="tile_label">VoiceDM</string>
+
+    <!-- Widget -->
+    <string name="widget_description">Start or stop the VoiceDM hands-free conversation.</string>
+    <string name="widget_title_idle">VoiceDM</string>
+    <string name="widget_status_idle">Tap to start</string>
+    <string name="widget_start">Start</string>
+    <string name="widget_stop">Stop</string>
+    <string name="widget_status_running">Listening for messages</string>
+    <string name="widget_status_off">Tap to start</string>
+
+    <!-- Foreground service notification -->
+    <string name="notif_title">VoiceDM · %1$s</string>
+    <string name="notif_no_chat">no contact</string>
+    <string name="notif_subtext">Hands-free DMs</string>
+    <string name="notif_action_skip">Skip</string>
+    <string name="notif_action_send">Send</string>
+    <string name="notif_action_discard">Discard</string>
+    <string name="notif_action_reply">Reply</string>
+    <string name="notif_action_stop">Stop</string>
+    <string name="alert_title">VoiceDM needs attention</string>
+
+    <!-- Status text -->
+    <string name="status_idle">Stopped</string>
+    <string name="status_waiting">Waiting for a message</string>
+    <string name="status_reading">Reading…</string>
+    <string name="status_listening">Listening…</string>
+    <string name="status_confirming">Confirm the reply</string>
+    <string name="status_sending">Sending…</string>
+    <string name="status_sent">Sent</string>
+    <string name="status_skipped">Nothing heard, skipped</string>
+    <string name="status_error">Something went wrong</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title">Set up VoiceDM</string>
+    <string name="onboarding_step">Step %1$d of 4</string>
+    <string name="onboarding_finish">Start using VoiceDM</string>
+    <string name="onboarding_continue">Continue</string>
+    <string name="step_notifications_title">Read Instagram messages</string>
+    <string name="step_notifications_desc">VoiceDM needs notification access so it can read new Instagram DMs and reply through the notification’s reply box. Nothing leaves your phone.</string>
+    <string name="step_notifications_action">Grant notification access</string>
+    <string name="step_notifications_done">Notification access granted</string>
+    <string name="step_mic_title">Hear your reply</string>
+    <string name="step_mic_desc">The microphone transcribes what you say out loud. Android 13+ also needs permission to show the VoiceDM status notification.</string>
+    <string name="step_mic_action">Allow microphone</string>
+    <string name="step_mic_action_all">Allow microphone &amp; notifications</string>
+    <string name="step_mic_done">Microphone ready</string>
+    <string name="step_accessibility_title">Send voice notes (optional)</string>
+    <string name="step_accessibility_desc">Mode B lets VoiceDM open your chat in Instagram and hold the record button to send a real voice note. It is experimental; text replies work without it.</string>
+    <string name="step_accessibility_action">Enable Mode B</string>
+    <string name="step_accessibility_skip">Skip · use text replies only</string>
+    <string name="step_accessibility_done">Mode B enabled</string>
+    <string name="step_contact_title">Pick your person</string>
+    <string name="step_contact_desc">Choose the one Instagram chat VoiceDM is allowed to answer. Type the name exactly as it appears in your notifications, or tap a chat it has already seen.</string>
+    <string name="step_contact_hint">Contact name</string>
+    <string name="step_contact_no_chats">No chats seen yet — open Instagram and let a DM arrive, then come back.</string>
+    <string name="step_contact_empty">Pick a contact to continue</string>
+    <string name="onboarding_instagram_missing">Instagram does not appear to be installed.</string>
+
+    <!-- Main screen -->
+    <string name="main_talk_title">Talk to %1$s</string>
+    <string name="main_not_ready">Finish setup first</string>
+    <string name="main_open_setup">Finish setup</string>
+    <string name="main_open_settings">Settings</string>
+    <string name="main_start">Start</string>
+    <string name="main_stop">Stop</string>
+    <string name="main_log_empty">Messages you receive will show up here.</string>
+    <string name="main_skip">Skip</string>
+    <string name="main_repeat">Repeat</string>
+    <string name="main_listen">Reply now</string>
+    <string name="main_send">Send</string>
+    <string name="main_discard">Discard</string>
+    <string name="main_clear_log">Clear</string>
+    <string name="main_battery_title">Keep it alive</string>
+    <string name="main_battery_desc">Let VoiceDM ignore battery optimisation so the loop survives with the screen off.</string>
+    <string name="main_battery_action">Allow unrestricted battery</string>
+    <string name="main_confirm_title">Reply to send</string>
+    <string name="kind_voice_note">Voice note</string>
+    <string name="kind_photo">Photo</string>
+    <string name="kind_video">Video</string>
+    <string name="kind_reel">Reel</string>
+    <string name="kind_story">Story mention</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="back">Back</string>
+    <string name="settings_section_contact">Contact</string>
+    <string name="settings_contact_hint">Instagram name, exactly as notified</string>
+    <string name="settings_contact_empty">No contact selected</string>
+    <string name="settings_seen_chats">Seen recently</string>
+    <string name="settings_section_reply">Replies</string>
+    <string name="settings_mode_a">Mode A · text reply</string>
+    <string name="settings_mode_a_desc">Sends your words through the notification’s reply box. Reliable, works with the screen off.</string>
+    <string name="settings_mode_b">Mode B · voice note (experimental)</string>
+    <string name="settings_mode_b_desc">Drives Instagram and holds the record button to send a real voice note. Needs the screen on and unlocked.</string>
+    <string name="settings_mode_b_missing">Accessibility permission not granted yet.</string>
+    <string name="settings_confirm">Ask before sending</string>
+    <string name="settings_confirm_desc">Speak the transcript back, then send only when you confirm.</string>
+    <string name="settings_autolisten">Listen automatically after reading</string>
+    <string name="settings_headset">Headset button controls the loop</string>
+    <string name="settings_announce">Announce who is talking</string>
+    <string name="settings_retry">Retry once when nothing was heard</string>
+    <string name="settings_catchup">Read messages that arrived while stopped</string>
+    <string name="settings_section_speech">Voice</string>
+    <string name="settings_tts_rate">Reading speed</string>
+    <string name="settings_tts_rate_value">%1$.1f×</string>
+    <string name="settings_tts_language">Speech language</string>
+    <string name="settings_asr_language">Recognition language</string>
+    <string name="settings_lang_hint">e.g. en-US, de-DE, hi-IN</string>
+    <string name="settings_offline_asr">Prefer on-device recognition</string>
+    <string name="settings_section_mode_b">Mode B</string>
+    <string name="settings_voice_hold">Hold record for %1$d s</string>
+    <string name="settings_section_permissions">Permissions</string>
+    <string name="settings_perm_notifications">Notification access</string>
+    <string name="settings_perm_mic">Microphone</string>
+    <string name="settings_perm_accessibility">Accessibility (Mode B)</string>
+    <string name="settings_perm_battery">Battery optimisation exemption</string>
+    <string name="settings_granted">Granted</string>
+    <string name="settings_not_granted">Not granted</string>
+    <string name="settings_open">Open</string>
+    <string name="settings_about">VoiceDM talks to one Instagram chat using only Android’s own notification, speech and accessibility features. No Instagram login, no unofficial APIs.</string>
+</resources>
