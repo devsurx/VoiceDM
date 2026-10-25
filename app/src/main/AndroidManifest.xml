@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Reading the Instagram chat notification and answering it inline. -->
-    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
-    <!-- TTS output (beeps, spoken messages) and speech-to-text reply. -->
+    <!--
+      Note: BIND_NOTIFICATION_LISTENER_SERVICE / BIND_ACCESSIBILITY_SERVICE are NOT
+      declared here. They are signature-level permissions only the system can hold; what
+      protects those services is android:permission on each <service> below. Declaring them
+      here would achieve nothing and trips install-time permission warnings.
+
+      TTS output (beeps, spoken messages) and speech-to-text reply.
+    -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <!-- Keeping the conversation loop alive with the screen off. -->
@@ -13,8 +18,8 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-    <!-- Mode B: driving Instagram itself (opt-in only). -->
-    <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
+    <!-- Mode B: driving Instagram itself (opt-in only). Declared as required by the
+         accessibility <service> binding, but the app never holds the BIND_* form. -->
 
     <!-- Only used to check that Instagram is installed; no package visibility beyond it. -->
     <queries>
