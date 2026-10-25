@@ -20,11 +20,11 @@ Grab the prebuilt APK from the releases page:
 
 **→ [github.com/devsurx/VoiceDM/releases](https://github.com/devsurx/VoiceDM/releases)**
 
-Current release: **[v1.0.0](https://github.com/devsurx/VoiceDM/releases/tag/v1.0.0)** —
-R8-minified, **signed**, 1.5 MB, `versionName 1.0.0`, minSdk 26 / targetSdk 37.
+Current release: **[v1.0.1](https://github.com/devsurx/VoiceDM/releases/tag/v1.0.1)** —
+R8-minified, **signed**, 1.5 MB, `versionName 1.0.1`, minSdk 26 / targetSdk 37.
 
 ```bash
-adb install VoiceDM-1.0.0.apk      # or copy it to the phone and open it
+adb install VoiceDM-1.0.1.apk      # or copy it to the phone and open it
 ```
 
 Signer certificate: `CN=VoiceDM, OU=VoiceDM, O=devsurx, C=US`
