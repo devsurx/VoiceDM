@@ -14,6 +14,37 @@ Instagram DM → notification → VoiceDM reads it aloud → listens → sends y
 
 ---
 
+## Download
+
+Grab the prebuilt APK from the releases page:
+
+**→ [github.com/devsurx/VoiceDM/releases](https://github.com/devsurx/VoiceDM/releases)**
+
+Current release: **v1.0.0** — R8-minified, 1.5 MB, `versionName 1.0.0`, minSdk 26 / targetSdk 37.
+
+> ### ⚠️ The release APK ships unsigned
+>
+> Android will not install an unsigned APK. Re-sign it once with your own key —
+>
+> ```bash
+> # one-time: create a keystore (keep it and its password safe!)
+> keytool -genkeypair -v -keystore release.jks -keyalg RSA -keysize 2048 \
+>         -validity 10000 -alias voicedm
+>
+> # sign
+> $ANDROID_HOME/build-tools/37.0.0/apksigner sign \
+>         --ks release.jks --out VoiceDM-1.0.0-signed.apk \
+>         VoiceDM-1.0.0-unsigned.apk
+>
+> adb install VoiceDM-1.0.0-signed.apk
+> ```
+>
+> Always reuse the **same keystore** for future versions, otherwise Android treats the new
+> build as a different app and refuses to install it over the old one. Release notes for
+> each version live on the releases page.
+
+---
+
 ## Contents
 
 - [Requirements](#requirements)
@@ -44,7 +75,7 @@ Nothing else: no account is shared with VoiceDM, no network access at all.
 ```bash
 ./gradlew :app:assembleDebug      # debug APK
 ./gradlew :app:testDebugUnitTest  # JVM unit tests
-./gradlew :app:assembleRelease    # minified release APK (needs a signing config to install)
+./gradlew :app:assembleRelease    # minified release APK (unsigned - see Download above)
 ```
 
 Requirements: JDK 17+ and an Android SDK with `platforms;android-37` (the path goes into
