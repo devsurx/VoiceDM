@@ -105,6 +105,35 @@ fun SettingsScreen(
                     singleLine = true,
                     shape = RoundedCornerShape(16.dp),
                 )
+                // Reset the name in one tap from the newest notification, or clear it.
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    OutlinedButton(
+                        onClick = viewModel::useLastNotification,
+                        enabled = discovered.isNotEmpty(),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(14.dp),
+                    ) {
+                        Text(stringResource(R.string.settings_contact_use_last))
+                    }
+                    OutlinedButton(
+                        onClick = { viewModel.setContact("") },
+                        enabled = settings.targetChatName.isNotBlank(),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(14.dp),
+                    ) {
+                        Text(stringResource(R.string.settings_contact_clear))
+                    }
+                }
+                Text(
+                    text = discovered.firstOrNull()?.let {
+                        stringResource(R.string.settings_contact_newest, it.name)
+                    } ?: stringResource(R.string.settings_contact_waiting),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 if (discovered.isNotEmpty()) {
                     Text(
                         text = stringResource(R.string.settings_seen_chats),

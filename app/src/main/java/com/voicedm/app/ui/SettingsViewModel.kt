@@ -28,6 +28,14 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
 
     fun setContact(name: String) = update { it.copy(targetChatName = name.trim()) }
 
+    /**
+     * One tap: overwrite the contact with the chat of the newest notification VoiceDM has
+     * seen ([discovered] is kept sorted newest-first by DiscoveredChatsRepository).
+     */
+    fun useLastNotification() {
+        discovered.value.firstOrNull()?.let { setContact(it.name) }
+    }
+
     /** Nickname keeps its spaces while typing; [com.voicedm.app.domain.model.displayContactName] trims on read. */
     fun setNickname(name: String) = update { it.copy(contactNickname = name) }
 

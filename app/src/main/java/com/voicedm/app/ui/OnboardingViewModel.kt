@@ -67,4 +67,9 @@ class OnboardingViewModel(private val container: AppContainer) : ViewModel() {
             container.settings.update { it.copy(targetChatName = name.trim()) }
         }
     }
+
+    /** One-tap fill from the newest Instagram notification VoiceDM has seen. */
+    fun pickLatestChat() {
+        container.discoveredChats.chats.value.firstOrNull()?.let { setChatName(it.name) }
+    }
 }

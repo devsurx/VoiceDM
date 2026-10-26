@@ -148,6 +148,7 @@ fun OnboardingScreen(
                 3 -> ContactStep(
                     ui = ui,
                     onNameChange = viewModel::setChatName,
+                    onUseLatest = viewModel::pickLatestChat,
                 )
             }
 
@@ -199,6 +200,7 @@ fun OnboardingScreen(
 private fun ContactStep(
     ui: OnboardingUi,
     onNameChange: (String) -> Unit,
+    onUseLatest: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         StepCard(
@@ -213,6 +215,16 @@ private fun ContactStep(
             singleLine = true,
             shape = RoundedCornerShape(16.dp),
         )
+        // One tap instead of typing the name exactly right: fill from the newest
+        // notification VoiceDM has seen (disabled until one has arrived).
+        OutlinedButton(
+            onClick = onUseLatest,
+            enabled = ui.discovered.isNotEmpty(),
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+        ) {
+            Text(stringResource(R.string.settings_contact_use_last))
+        }
         if (ui.discovered.isEmpty()) {
             Text(
                 text = stringResource(R.string.step_contact_no_chats),
