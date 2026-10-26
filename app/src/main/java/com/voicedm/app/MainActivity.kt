@@ -9,6 +9,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.togetherWith
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -64,6 +66,9 @@ class MainActivity : ComponentActivity() {
             intent?.getBooleanExtra(EXTRA_RESUME_ASSISTANT, false) == true
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Must run before super.onCreate(): shows the logo splash and applies
+        // postSplashScreenTheme (Theme.VoiceDM) to this activity.
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
@@ -140,47 +145,69 @@ class MainActivity : ComponentActivity() {
                     screen = Screen.MAIN
                 }
 
-                when (screen) {
-                    Screen.ONBOARDING -> OnboardingScreen(
-                        viewModel = onboardingViewModel,
-                        onRequestMicrophone = {
-                            val wanted = buildList {
-                                add(Manifest.permission.RECORD_AUDIO)
-                                if (!onboarding.notifications) {
-                                    add(Manifest.permission.POST_NOTIFICATIONS)
+                // Crossfade + gentle slide between screens; forward (higher ordinal)
+                // enters from the right, back returns from the left.
+                androidx.compose.animation.AnimatedContent(
+                    targetState = screen,
+                    transitionSpec = {
+                        val fadeIn = androidx.compose.animation.fadeIn(
+                            androidx.compose.animation.core.tween(200),
+                        )
+                        val fadeOut = androidx.compose.animation.fadeOut(
+                            androidx.compose.animation.core.tween(160),
+                        )
+                        if (targetState.ordinal >= screen.ordinal) {
+                            (fadeIn + androidx.compose.animation.slideInHorizontally { it / 6 }) togetherWith
+                                fadeOut
+                        } else {
+                            fadeIn togetherWith
+                                (fadeOut + androidx.compose.animation.slideOutHorizontally { it / 6 })
+                        }
+                    },
+                    label = "screen",
+                ) { current ->
+                    when (current) {
+                        Screen.ONBOARDING -> OnboardingScreen(
+                            viewModel = onboardingViewModel,
+                            onRequestMicrophone = {
+                                val wanted = buildList {
+                                    add(Manifest.permission.RECORD_AUDIO)
+                                    if (!onboarding.notifications) {
+                                        add(Manifest.permission.POST_NOTIFICATIONS)
+                                    }
+                                }.toTypedArray()
+                                micLauncher.launch(wanted)
+                            },
+                            onFinished = {
+                                onboardingViewModel.refresh()
+                                screen = if (onboardingViewModel.ui.value.finished) {
+                                    Screen.MAIN
+                                } else {
+                                    Screen.ONBOARDING
                                 }
-                            }.toTypedArray()
-                            micLauncher.launch(wanted)
-                        },
-                        onFinished = {
-                            onboardingViewModel.refresh()
-                            screen = if (onboardingViewModel.ui.value.finished) {
-                                Screen.MAIN
-                            } else {
-                                Screen.ONBOARDING
-                            }
-                        },
-                    )
+                            },
+                        )
 
-                    Screen.MAIN -> MainScreen(
-                        viewModel = mainViewModel,
-                        onOpenSettings = { screen = Screen.SETTINGS },
-                        onOpenAssistant = { screen = Screen.ASSISTANT },
-                        onOpenSetup = {
-                            onboardingViewModel.refresh()
-                            screen = Screen.ONBOARDING
-                        },
-                    )
+                        Screen.MAIN -> MainScreen(
+                            viewModel = mainViewModel,
+                            onOpenSettings = { screen = Screen.SETTINGS },
+                            onOpenAssistant = { screen = Screen.ASSISTANT },
+                            onOpenSetup = {
+                                onboardingViewModel.refresh()
+                                screen = Screen.ONBOARDING
+                            },
+                        )
 
-                    Screen.SETTINGS -> SettingsScreen(
-                        viewModel = settingsViewModel,
-                        onBack = { screen = Screen.MAIN },
-                    )
+                        Screen.SETTINGS -> SettingsScreen(
+                            viewModel = settingsViewModel,
+                            onBack = { screen = Screen.MAIN },
+                        )
 
-                    Screen.ASSISTANT -> AssistantScreen(
-                        viewModel = assistantViewModel,
-                        onBack = { screen = Screen.MAIN },
-                    )
+                        Screen.ASSISTANT -> AssistantScreen(
+                            viewModel = assistantViewModel,
+                            onBack = { screen = Screen.MAIN },
+                        )
+                    }
                 }
             }
         }

@@ -12,6 +12,7 @@ import com.voicedm.app.R
 import com.voicedm.app.VoiceDmApp
 import com.voicedm.app.data.AppContainer
 import com.voicedm.app.domain.model.ConversationUiState
+import com.voicedm.app.domain.model.displayContactName
 import com.voicedm.app.service.VoiceDmService
 
 /**
@@ -31,7 +32,7 @@ class VoiceDmWidget : AppWidgetProvider() {
         val container = runCatching { VoiceDmApp.from(context).container }.getOrNull()
         val state = container?.conversation?.state?.value ?: ConversationUiState()
         val ready = container?.let(::isReady) ?: false
-        val views = buildViews(context, state, ready)
+        val views = buildViews(context, state, ready, container)
         appWidgetIds.forEach { id -> appWidgetManager.updateAppWidget(id, views) }
     }
 
@@ -46,6 +47,7 @@ class VoiceDmWidget : AppWidgetProvider() {
                 context,
                 container.conversation.state.value,
                 isReady(container),
+                container,
             )
             ids.forEach { id -> manager.updateAppWidget(id, views) }
         }
@@ -59,12 +61,14 @@ class VoiceDmWidget : AppWidgetProvider() {
             context: Context,
             state: ConversationUiState,
             ready: Boolean,
+            container: AppContainer?,
         ): RemoteViews {
             val running = VoiceDmService.running || state.isRunning
+            val displayName = container?.cachedSettings?.displayContactName().orEmpty()
             return RemoteViews(context.packageName, R.layout.widget_voicedm).apply {
                 setTextViewText(
                     R.id.widget_title,
-                    state.chatName.ifBlank { context.getString(R.string.widget_title_idle) },
+                    displayName.ifBlank { context.getString(R.string.widget_title_idle) },
                 )
                 setTextViewText(
                     R.id.widget_status,

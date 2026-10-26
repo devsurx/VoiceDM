@@ -8,6 +8,7 @@ import com.voicedm.app.domain.model.IncomingMessage
 import com.voicedm.app.domain.model.LogDirection
 import com.voicedm.app.domain.model.MessageKind
 import com.voicedm.app.domain.model.ReplyMode
+import com.voicedm.app.domain.model.displayContactName
 import com.voicedm.app.domain.queue.PendingMessageQueue
 import com.voicedm.app.domain.reply.EchoGuard
 import com.voicedm.app.service.audio.AudioFocusController
@@ -125,7 +126,7 @@ class ConversationEngine(
         store.setCurrent(entry)
 
         focus.request()
-        announce(message.announcement(cfg.announceSender))
+        announce(message.announcement(cfg.announceSender, cfg.displayContactName()))
         focus.abandon()
 
         if (!cfg.autoListenAfterRead) {

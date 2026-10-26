@@ -13,10 +13,14 @@ data class IncomingMessage(
     val receivedAtMs: Long,
 ) {
     /** Spoken form, as decided by the announcement rules. */
-    fun announcement(announceSender: Boolean): String = com.voicedm.app.domain.model.Announcements.incoming(
+    fun announcement(
+        announceSender: Boolean,
+        /** Display name for the chat - used when the notification carries no sender name. */
+        displayName: String? = null,
+    ): String = com.voicedm.app.domain.model.Announcements.incoming(
         kind = message.kind,
         text = message.text,
-        senderName = message.senderName,
+        senderName = message.senderName?.takeIf { it.isNotBlank() } ?: displayName,
         announceSender = announceSender,
     )
 }

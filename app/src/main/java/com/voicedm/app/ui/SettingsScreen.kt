@@ -2,6 +2,7 @@ package com.voicedm.app.ui
 
 import android.content.Intent
 import android.provider.Settings
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -29,10 +31,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.voicedm.app.BuildConfig
 import com.voicedm.app.R
 import com.voicedm.app.domain.model.AppSettings
 import com.voicedm.app.domain.model.ReplyMode
@@ -85,6 +90,18 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(stringResource(R.string.settings_contact_hint)) },
                     placeholder = { Text(stringResource(R.string.settings_contact_empty)) },
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                )
+                OutlinedTextField(
+                    value = settings.contactNickname,
+                    onValueChange = { nick -> viewModel.setNickname(nick) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(R.string.settings_nickname_hint)) },
+                    placeholder = { Text(stringResource(R.string.settings_nickname_empty)) },
+                    supportingText = {
+                        Text(stringResource(R.string.settings_nickname_help))
+                    },
                     singleLine = true,
                     shape = RoundedCornerShape(16.dp),
                 )
@@ -271,6 +288,32 @@ fun SettingsScreen(
                 )
             }
 
+            // ---------------------------------------------------------------- about
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.logo),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(52.dp)
+                        .clip(RoundedCornerShape(14.dp)),
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        text = stringResource(R.string.app_name),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = "v${BuildConfig.VERSION_NAME}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
             Text(
                 text = stringResource(R.string.settings_about),
                 style = MaterialTheme.typography.bodySmall,

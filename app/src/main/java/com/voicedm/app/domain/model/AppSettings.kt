@@ -8,6 +8,12 @@ package com.voicedm.app.domain.model
 data class AppSettings(
     /** Display name of the one Instagram chat we act on, exactly as notifications show it. */
     val targetChatName: String = "",
+    /**
+     * Optional nickname shown instead of [targetChatName] everywhere the contact is
+     * displayed (title, notification, widget, tile). Matching and replies always use the
+     * real chat name - a nickname can never change who gets the reply.
+     */
+    val contactNickname: String = "",
     /** Reply delivery mechanism. */
     val replyMode: ReplyMode = ReplyMode.INLINE_TEXT,
     /** Speak the transcript and wait for an explicit Send before delivering it. */
@@ -49,6 +55,14 @@ data class AppSettings(
         const val DEFAULT_VOICE_NOTE_HOLD_SECONDS = 8
     }
 }
+
+/**
+ * How the contact should be *shown* to the user: the nickname when one is set,
+ * otherwise the real chat name. Pure, so every display surface (title, notification,
+ * widget, tile, TTS fallback) resolves it identically.
+ */
+fun AppSettings.displayContactName(): String =
+    contactNickname.trim().ifBlank { targetChatName.trim() }
 
 /** Which onboarding step the user is on; steps are shown in this order. */
 enum class OnboardingStep { NOTIFICATIONS, MICROPHONE, ACCESSIBILITY, CONTACT }

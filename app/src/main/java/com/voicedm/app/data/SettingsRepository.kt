@@ -33,6 +33,7 @@ class SettingsRepository(private val context: Context) {
         val next = transform(current())
         context.settingsDataStore.edit { prefs ->
             prefs[Keys.TARGET_CHAT] = next.targetChatName
+            prefs[Keys.NICKNAME] = next.contactNickname
             prefs[Keys.REPLY_MODE] = next.replyMode.name
             prefs[Keys.CONFIRM_SEND] = next.confirmBeforeSend
             prefs[Keys.AUTO_LISTEN] = next.autoListenAfterRead
@@ -56,6 +57,7 @@ class SettingsRepository(private val context: Context) {
 
 private object Keys {
     val TARGET_CHAT = stringPreferencesKey("target_chat")
+    val NICKNAME = stringPreferencesKey("contact_nickname")
     val REPLY_MODE = stringPreferencesKey("reply_mode")
     val CONFIRM_SEND = booleanPreferencesKey("confirm_send")
     val AUTO_LISTEN = booleanPreferencesKey("auto_listen")
@@ -77,6 +79,7 @@ private object Keys {
 
 private fun Preferences.toSettings(): AppSettings = AppSettings(
     targetChatName = this[Keys.TARGET_CHAT] ?: "",
+    contactNickname = this[Keys.NICKNAME] ?: "",
     replyMode = runCatching { ReplyMode.valueOf(this[Keys.REPLY_MODE] ?: "") }
         .getOrDefault(ReplyMode.INLINE_TEXT),
     confirmBeforeSend = this[Keys.CONFIRM_SEND] ?: false,

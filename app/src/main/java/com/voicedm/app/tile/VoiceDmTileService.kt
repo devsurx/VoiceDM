@@ -10,6 +10,7 @@ import android.service.quicksettings.TileService
 import com.voicedm.app.MainActivity
 import com.voicedm.app.R
 import com.voicedm.app.VoiceDmApp
+import com.voicedm.app.domain.model.displayContactName
 import com.voicedm.app.service.VoiceDmService
 
 /**
@@ -67,7 +68,7 @@ class VoiceDmTileService : TileService() {
         tile.state = if (running) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             tile.subtitle = if (running) {
-                state?.chatName?.takeIf { it.isNotBlank() }
+                container?.cachedSettings?.displayContactName()?.takeIf { it.isNotBlank() }
             } else {
                 null
             }

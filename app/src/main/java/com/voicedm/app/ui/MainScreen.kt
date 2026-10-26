@@ -1,5 +1,10 @@
 package com.voicedm.app.ui
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,8 +41,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -91,21 +98,35 @@ fun MainScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                Image(
+                    painter = painterResource(R.drawable.logo),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                )
+                Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = if (ui.chatName.isNotBlank()) {
-                            stringResource(R.string.main_talk_title, ui.chatName)
+                        text = if (ui.displayName.isNotBlank()) {
+                            stringResource(R.string.main_talk_title, ui.displayName)
                         } else {
                             stringResource(R.string.settings_contact_empty)
                         },
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                     )
-                    Text(
-                        text = statusLabel(conversation.phase, conversation.errorMessage),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = statusColor(conversation.phase),
-                    )
+                    AnimatedContent(
+                        targetState = conversation.phase to conversation.errorMessage,
+                        transitionSpec = { fadeIn() togetherWith fadeOut() },
+                        label = "status",
+                    ) { (phase, error) ->
+                        Text(
+                            text = statusLabel(phase, error),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = statusColor(phase),
+                        )
+                    }
                 }
                 IconButton(onClick = onOpenAssistant) {
                     Icon(

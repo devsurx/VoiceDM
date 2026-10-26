@@ -23,6 +23,7 @@ import com.voicedm.app.VoiceDmApp.Companion.CHANNEL_SERVICE
 import com.voicedm.app.data.AppContainer
 import com.voicedm.app.domain.model.ConversationPhase
 import com.voicedm.app.domain.model.ConversationUiState
+import com.voicedm.app.domain.model.displayContactName
 import com.voicedm.app.service.audio.AudioFocusController
 import com.voicedm.app.service.audio.BeepPlayer
 import com.voicedm.app.service.audio.FocusEvent
@@ -227,7 +228,8 @@ class VoiceDmService : LifecycleService() {
             .setContentTitle(
                 getString(
                     R.string.notif_title,
-                    state.chatName.ifBlank { getString(R.string.notif_no_chat) },
+                    container.cachedSettings.displayContactName()
+                        .ifBlank { getString(R.string.notif_no_chat) },
                 ),
             )
             .setContentText(statusText(state))

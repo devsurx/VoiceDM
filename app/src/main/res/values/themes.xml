@@ -5,4 +5,12 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
+
+    <!-- Cold-start splash: logo mark on the artwork's own background, then hands over
+         to the main theme. Called via installSplashScreen() in MainActivity. -->
+    <style name="Theme.VoiceDM.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.VoiceDM</item>
+    </style>
 </resources>

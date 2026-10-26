@@ -1,5 +1,10 @@
 package com.voicedm.app.ui
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -140,9 +146,28 @@ fun AssistantScreen(
 
                         else -> MaterialTheme.colorScheme.tertiary
                     }
+                    val listening = runtime.state == AssistantState.IDLE_WAKE_LISTENING
+                    // Gentle breathing pulse while the mic is live; static otherwise.
+                    val pulse by rememberInfiniteTransition(label = "dot").animateFloat(
+                        initialValue = 0f,
+                        targetValue = 1f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(1100),
+                            repeatMode = RepeatMode.Reverse,
+                        ),
+                        label = "dotPulse",
+                    )
                     Box(
                         modifier = Modifier
                             .size(12.dp)
+                            .graphicsLayer {
+                                if (listening) {
+                                    val s = 1f + pulse * 0.4f
+                                    scaleX = s
+                                    scaleY = s
+                                    alpha = 1f - pulse * 0.5f
+                                }
+                            }
                             .background(dotColor, CircleShape),
                     )
                     Text(

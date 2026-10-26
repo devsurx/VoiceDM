@@ -163,6 +163,7 @@ When you select Mode B in Settings (and enable the accessibility service):
 | Setting | What it does |
 |---|---|
 | Contact | The only chat VoiceDM answers |
+| Nickname | Display name shown instead of the chat name (title, notification, widget, tile); replies still use the real name |
 | Mode A / Mode B | Reply delivery: notification inline-reply vs. Instagram voice note |
 | Ask before sending | Speak the transcript back; send only on confirmation (Send/Discard in app or notification) |
 | Listen automatically after reading | Turn off to trigger listening with the headset button or the notification's *Reply* action |

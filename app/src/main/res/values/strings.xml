@@ -108,6 +108,9 @@
     <string name="settings_contact_hint">Instagram name, exactly as notified</string>
     <string name="settings_contact_empty">No contact selected</string>
     <string name="settings_seen_chats">Seen recently</string>
+    <string name="settings_nickname_hint">Nickname (display name)</string>
+    <string name="settings_nickname_empty">Mum, Alex, Project X…</string>
+    <string name="settings_nickname_help">Shown instead of the chat name throughout VoiceDM — matching and replies still use the real name.</string>
     <string name="settings_section_reply">Replies</string>
     <string name="settings_mode_a">Mode A · text reply</string>
     <string name="settings_mode_a_desc">Sends your words through the notification’s reply box. Reliable, works with the screen off.</string>

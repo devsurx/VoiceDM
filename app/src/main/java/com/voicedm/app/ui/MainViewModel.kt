@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.voicedm.app.data.AppContainer
 import com.voicedm.app.domain.model.AppSettings
+import com.voicedm.app.domain.model.displayContactName
 import com.voicedm.app.service.VoiceDmService
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +19,8 @@ import kotlinx.coroutines.launch
 /** Snapshot of everything the main screen needs to decide what it can offer the user. */
 data class MainUiState(
     val chatName: String = "",
+    /** What the title shows: nickname if set, otherwise the real chat name. */
+    val displayName: String = "",
     val canStart: Boolean = false,
     val instagramInstalled: Boolean = true,
     val batteryExempt: Boolean = true,
@@ -61,6 +64,7 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
         val configured = settings.targetChatName.isNotBlank()
         return MainUiState(
             chatName = settings.targetChatName,
+            displayName = settings.displayContactName(),
             instagramInstalled = permissions.instagramInstalled(),
             batteryExempt = permissions.batteryOptimizationExempt(),
             canStart = notificationAccess && microphone && configured &&

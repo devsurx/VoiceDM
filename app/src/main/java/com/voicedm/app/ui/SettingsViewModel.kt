@@ -28,5 +28,8 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
 
     fun setContact(name: String) = update { it.copy(targetChatName = name.trim()) }
 
+    /** Nickname keeps its spaces while typing; [com.voicedm.app.domain.model.displayContactName] trims on read. */
+    fun setNickname(name: String) = update { it.copy(contactNickname = name) }
+
     fun clearLog() = container.conversation.clearLog()
 }
