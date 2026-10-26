@@ -1,6 +1,7 @@
 package com.voicedm.app
 
 import android.Manifest
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -23,6 +24,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.voicedm.app.data.AppContainer
 import com.voicedm.app.service.VoiceDmService
+import com.voicedm.app.ui.AssistantScreen
+import com.voicedm.app.ui.AssistantViewModel
 import com.voicedm.app.ui.MainScreen
 import com.voicedm.app.ui.MainViewModel
 import com.voicedm.app.ui.OnboardingScreen
@@ -31,18 +34,43 @@ import com.voicedm.app.ui.SettingsScreen
 import com.voicedm.app.ui.SettingsViewModel
 import com.voicedm.app.ui.theme.VoiceDmTheme
 
-private enum class Screen { ONBOARDING, MAIN, SETTINGS }
+private enum class Screen { ONBOARDING, MAIN, SETTINGS, ASSISTANT }
 
 class MainActivity : ComponentActivity() {
 
     companion object {
         const val EXTRA_AUTO_START = "com.voicedm.app.AUTO_START"
+        const val EXTRA_OPEN_ASSISTANT = "com.voicedm.app.OPEN_ASSISTANT"
+        const val EXTRA_RESUME_ASSISTANT = "com.voicedm.app.RESUME_ASSISTANT"
     }
 
+    /** Nonce > 0 means "jump to the Assistant screen"; bumps again for each new intent. */
+    private var assistantNav by mutableStateOf(0)
+
+    /** Set when the "Resume listening" notification should also start the service. */
+    private var resumeAssistantPending = false
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if (wantsAssistant(intent)) {
+            assistantNav++
+            resumeAssistantPending = intent.getBooleanExtra(EXTRA_RESUME_ASSISTANT, false)
+        }
+    }
+
+    private fun wantsAssistant(intent: Intent?): Boolean =
+        intent?.getBooleanExtra(EXTRA_OPEN_ASSISTANT, false) == true ||
+            intent?.getBooleanExtra(EXTRA_RESUME_ASSISTANT, false) == true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        if (wantsAssistant(intent)) {
+            assistantNav = 1
+            resumeAssistantPending = intent.getBooleanExtra(EXTRA_RESUME_ASSISTANT, false)
+        }
 
         val container = VoiceDmApp.from(this).container
 
@@ -54,9 +82,23 @@ class MainActivity : ComponentActivity() {
                 val onboardingViewModel: OnboardingViewModel = viewModel(factory = factory)
                 val mainViewModel: MainViewModel = viewModel(factory = factory)
                 val settingsViewModel: SettingsViewModel = viewModel(factory = factory)
+                val assistantViewModel: AssistantViewModel = viewModel(factory = factory)
 
                 val onboarding by onboardingViewModel.ui.collectAsState()
                 val mainState by mainViewModel.ui.collectAsState()
+
+                // Notification / boot "resume" taps land here: open the Assistant screen,
+                // and start the service when that's what the tap asked for.
+                val navNonce = assistantNav
+                androidx.compose.runtime.LaunchedEffect(navNonce) {
+                    if (navNonce > 0) {
+                        screen = Screen.ASSISTANT
+                        if (resumeAssistantPending) {
+                            resumeAssistantPending = false
+                            com.voicedm.app.assistant.AssistantService.start(this@MainActivity)
+                        }
+                    }
+                }
 
                 // The widget hands us an "auto start" flag when the user tapped Start on
                 // the home screen; honour it once permissions and contact are in place.
@@ -94,7 +136,9 @@ class MainActivity : ComponentActivity() {
                     onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
                 }
 
-                BackHandler(enabled = screen == Screen.SETTINGS) { screen = Screen.MAIN }
+                BackHandler(enabled = screen == Screen.SETTINGS || screen == Screen.ASSISTANT) {
+                    screen = Screen.MAIN
+                }
 
                 when (screen) {
                     Screen.ONBOARDING -> OnboardingScreen(
@@ -121,6 +165,7 @@ class MainActivity : ComponentActivity() {
                     Screen.MAIN -> MainScreen(
                         viewModel = mainViewModel,
                         onOpenSettings = { screen = Screen.SETTINGS },
+                        onOpenAssistant = { screen = Screen.ASSISTANT },
                         onOpenSetup = {
                             onboardingViewModel.refresh()
                             screen = Screen.ONBOARDING
@@ -129,6 +174,11 @@ class MainActivity : ComponentActivity() {
 
                     Screen.SETTINGS -> SettingsScreen(
                         viewModel = settingsViewModel,
+                        onBack = { screen = Screen.MAIN },
+                    )
+
+                    Screen.ASSISTANT -> AssistantScreen(
+                        viewModel = assistantViewModel,
                         onBack = { screen = Screen.MAIN },
                     )
                 }
@@ -148,6 +198,9 @@ private class ContainerFactory(private val container: AppContainer) : ViewModelP
 
         modelClass.isAssignableFrom(SettingsViewModel::class.java) ->
             SettingsViewModel(container) as T
+
+        modelClass.isAssignableFrom(AssistantViewModel::class.java) ->
+            AssistantViewModel(container) as T
 
         else -> throw IllegalArgumentException("Unknown ViewModel: $modelClass")
     }

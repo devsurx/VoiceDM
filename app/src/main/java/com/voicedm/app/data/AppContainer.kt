@@ -1,6 +1,7 @@
 package com.voicedm.app.data
 
 import android.content.Context
+import com.voicedm.app.assistant.AssistantRuntimeStore
 import com.voicedm.app.domain.model.AppSettings
 import com.voicedm.app.domain.reply.EchoGuard
 import kotlinx.coroutines.CoroutineScope
@@ -24,6 +25,9 @@ class AppContainer(private val context: Context) {
     val activeNotifications = ActiveNotificationStore()
     val pipeline = MessagePipeline()
     val echoGuard = EchoGuard()
+
+    /** Live assistant state published by AssistantService (same Flow-bus pattern as above). */
+    val assistant = AssistantRuntimeStore()
 
     /**
      * Last settings snapshot, readable without suspending - the widget and quick-settings

@@ -24,11 +24,17 @@ android {
         applicationId = "com.voicedm.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 3
-        versionName = "1.0.2"
+        versionCode = 4
+        versionName = "1.0.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+
+        // TensorFlow Lite ships native code for four ABIs; arm64 + arm32 covers every
+        // real device and keeps the APK delta ~4 MB smaller than packaging x86 too.
+        ndk {
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+        }
     }
 
     signingConfigs {
@@ -73,6 +79,11 @@ android {
         }
     }
 
+    androidResources {
+        // Keep the wake-word models store-only so they can be memory-mapped at runtime.
+        noCompress.add("tflite")
+    }
+
     testOptions {
         unitTests.isReturnDefaultValues = true
     }
@@ -94,6 +105,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.service)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.tensorflow.lite)
 
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.graphics)

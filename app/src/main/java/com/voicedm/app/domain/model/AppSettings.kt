@@ -34,6 +34,16 @@ data class AppSettings(
     val catchUpOnStart: Boolean = true,
     /** How long Mode B holds Instagram's record button, in seconds. */
     val voiceNoteHoldSeconds: Int = DEFAULT_VOICE_NOTE_HOLD_SECONDS,
+
+    // --- voice assistant (Stage 1: wake word + foreground service) -------------------
+    /** Assistant enabled: keep the wake-word service running. */
+    val assistantEnabled: Boolean = false,
+    /** Which bundled wake phrase to listen for - see WakePhrase.BUNDLED. */
+    val assistantPhraseId: String = "hey_jarvis",
+    /** 0 = hard to trigger, 1 = hair-trigger (maps to a score threshold). */
+    val assistantSensitivity: Float = 0.5f,
+    /** Wake-ups seen since the user last reset it - used to tune sensitivity. */
+    val assistantFalseTriggers: Int = 0,
 ) {
     companion object {
         const val DEFAULT_VOICE_NOTE_HOLD_SECONDS = 8

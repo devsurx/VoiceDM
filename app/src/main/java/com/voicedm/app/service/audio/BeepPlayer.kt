@@ -7,7 +7,7 @@ import kotlin.math.PI
 import kotlin.math.sin
 
 /** Short UI tones so you always know what the loop is doing without looking at the phone. */
-enum class Beep { LISTENING, SENT, FAILED, CONFIRM }
+enum class Beep { LISTENING, SENT, FAILED, CONFIRM, WAKE, UNDERSTOOD }
 
 /**
  * Generates its tones instead of shipping audio assets: no resources to load, works before
@@ -28,6 +28,10 @@ class BeepPlayer {
             Beep.SENT -> tone(1180, 90) + tone(1560, 110)
             Beep.FAILED -> tone(320, 260)
             Beep.CONFIRM -> tone(740, 80) + tone(740, 80, gapMs = 80)
+            // Assistant: rising "you have my attention" chime on wake...
+            Beep.WAKE -> tone(990, 110) + tone(1320, 90) + tone(1760, 140)
+            // ...and a clearly different, shorter ack when a command was understood.
+            Beep.UNDERSTOOD -> tone(1560, 70) + tone(2080, 80)
         }
         play(samples)
     }

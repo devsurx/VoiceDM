@@ -46,6 +46,10 @@ class SettingsRepository(private val context: Context) {
             prefs[Keys.RETRY_NO_SPEECH] = next.retryOnNoSpeech
             prefs[Keys.CATCH_UP] = next.catchUpOnStart
             prefs[Keys.VOICE_HOLD] = next.voiceNoteHoldSeconds
+            prefs[Keys.ASSISTANT_ENABLED] = next.assistantEnabled
+            prefs[Keys.ASSISTANT_PHRASE] = next.assistantPhraseId
+            prefs[Keys.ASSISTANT_SENSITIVITY] = next.assistantSensitivity
+            prefs[Keys.ASSISTANT_WAKES] = next.assistantFalseTriggers
         }
     }
 }
@@ -65,6 +69,10 @@ private object Keys {
     val RETRY_NO_SPEECH = booleanPreferencesKey("retry_no_speech")
     val CATCH_UP = booleanPreferencesKey("catch_up")
     val VOICE_HOLD = intPreferencesKey("voice_hold")
+    val ASSISTANT_ENABLED = booleanPreferencesKey("assistant_enabled")
+    val ASSISTANT_PHRASE = stringPreferencesKey("assistant_phrase")
+    val ASSISTANT_SENSITIVITY = floatPreferencesKey("assistant_sensitivity")
+    val ASSISTANT_WAKES = intPreferencesKey("assistant_wakes")
 }
 
 private fun Preferences.toSettings(): AppSettings = AppSettings(
@@ -84,4 +92,8 @@ private fun Preferences.toSettings(): AppSettings = AppSettings(
     catchUpOnStart = this[Keys.CATCH_UP] ?: true,
     voiceNoteHoldSeconds = (this[Keys.VOICE_HOLD] ?: AppSettings.DEFAULT_VOICE_NOTE_HOLD_SECONDS)
         .coerceIn(3, 30),
+    assistantEnabled = this[Keys.ASSISTANT_ENABLED] ?: false,
+    assistantPhraseId = this[Keys.ASSISTANT_PHRASE] ?: AppSettings().assistantPhraseId,
+    assistantSensitivity = (this[Keys.ASSISTANT_SENSITIVITY] ?: 0.5f).coerceIn(0f, 1f),
+    assistantFalseTriggers = this[Keys.ASSISTANT_WAKES] ?: 0,
 )

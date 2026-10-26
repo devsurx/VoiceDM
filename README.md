@@ -12,6 +12,10 @@ no login credentials, no scraping.
 Instagram DM → notification → VoiceDM reads it aloud → listens → sends your reply → repeat
 ```
 
+Since **v1.0.3** VoiceDM also ships a fully on-device **voice assistant**: say a wake phrase
+("Hey Jarvis" by default) and control the whole loop hands-free — see
+[Voice assistant (wake phrase)](#voice-assistant-wake-phrase).
+
 ---
 
 ## Download
@@ -20,11 +24,12 @@ Grab the prebuilt APK from the releases page:
 
 **→ [github.com/devsurx/VoiceDM/releases](https://github.com/devsurx/VoiceDM/releases)**
 
-Current release: **[v1.0.1](https://github.com/devsurx/VoiceDM/releases/tag/v1.0.1)** —
-R8-minified, **signed**, 1.5 MB, `versionName 1.0.1`, minSdk 26 / targetSdk 37.
+Current release: **[v1.0.2](https://github.com/devsurx/VoiceDM/releases/tag/v1.0.2)** —
+R8-minified, **signed**, 1.5 MB, `versionName 1.0.2`, minSdk 26 / targetSdk 37.
+(v1.0.3 adds the [voice assistant](#voice-assistant-wake-phrase).)
 
 ```bash
-adb install VoiceDM-1.0.1.apk      # or copy it to the phone and open it
+adb install VoiceDM-1.0.2.apk      # or copy it to the phone and open it
 ```
 
 Signer certificate: `CN=VoiceDM, OU=VoiceDM, O=devsurx, C=US`
@@ -44,10 +49,13 @@ works and what must never be committed.
 - [How Mode B works](#how-mode-b-works-optional-experimental)
 - [Settings reference](#settings-reference)
 - [Widget & quick-settings tile](#widget--quick-settings-tile)
+- [Voice assistant (wake phrase)](#voice-assistant-wake-phrase)
+- [Privacy](#privacy)
 - [Architecture](#architecture)
 - [Releasing](#releasing)
 - [Tests](#tests)
 - [Known limitations](#known-limitations)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -181,6 +189,136 @@ and **Skip**/**Repeat** while reading, so the phone can stay in your pocket.
 
 Both update whenever the conversation state changes.
 
+## Voice assistant (wake phrase)
+
+VoiceDM ships a lightweight, fully on-device assistant so the conversation loop can be
+driven entirely by voice — no cloud assistant, no extra app:
+
+```
+"Hey Jarvis" → chime → "reply … sure, on my way" → ack tone → sent
+```
+
+### Stage 1 (v1.0.3): the wake detector
+
+* A **`microphone`-type foreground service** (`AssistantService`) keeps a 16 kHz capture
+  loop alive with a persistent notification carrying **Pause / Resume / Stop** buttons.
+* Audio is streamed through a 1280-sample hop (80 ms) into the models from
+  **[openWakeWord](https://github.com/dscripka/openWakeWord)** (Apache-2.0), ported
+  bit-exact to LiteRT/TFLite in Kotlin.
+* An **energy VAD gate** keeps idle CPU low: the melspectrogram runs every frame to keep
+  the window alignment intact, while the more expensive embedding + keyword head only run
+  while sound is above an adaptive noise floor. On voice onset up to 16 missed windows are
+  back-filled so the first word isn't lost.
+* Trigger rules: peak-hold smoothing → score threshold → **patience of 2 consecutive
+  frames** → 2 s cooldown. The wake detector is gated off while TTS is speaking so
+  VoiceDM never hears itself.
+* Starts only from a visible app/tile/widget/notification (Android 12+ forbids background
+  microphone-service starts); `BOOT_COMPLETED` restarts it only when the system allows it,
+  otherwise a one-tap **Resume listening** notification is posted instead.
+* The **Assistant screen** (mic icon in the top bar) has: the master toggle, a live state
+  dot, the live detector readout (`score · frame ms · % of one core`), a **Test wake word**
+  button, the phrase picker, the sensitivity slider with its computed threshold, the
+  wake-ups counter (spot false triggers, reset after tuning), the command vocabulary, mic
+  and battery setup rows, and a privacy card.
+
+### Audio state machine
+
+One `AudioSessionManager` owns the microphone, and one state machine
+(`AssistantStateMachine`) owns every transition — unit-tested edge by edge:
+
+```
+ STOPPED
+    │  start (app / tile / widget / notification / boot)
+    ▼
+ IDLE_WAKE_LISTENING ──── pause / focus lost / conversation reading ────┐
+    │   melspec every frame; VAD gates embedding + keyword head         │
+    │   wake phrase (patience 2 frames, 2 s cooldown) → chime           │
+    ▼                                                                   │
+ COMMAND_LISTENING ── 5 s timeout ──────────────────────────────────────┤
+    │ understood → ack tone        │ failed → "sorry…" + 1 retry        │
+    ▼                             └──────────────► stays here (max 1)   │
+ EXECUTING ── run the command ──────────────────────────────────────────┤
+    │ finished ─────────────────────────────────────────────────────────┘
+    │ speaks                          │ replies
+    ▼                                 ▼
+ TTS_SPEAKING        RECORDING_REPLY ──► EXECUTING
+ (wake detector gated during TTS)
+```
+
+`PAUSED` (toggle/notification/focus loss) releases the microphone entirely; resume returns
+to `IDLE_WAKE_LISTENING`.
+
+### Wake engine and model sizes
+
+`openWakeWord` was chosen because it is Apache-2.0, purpose-built for always-on on-device
+use, and shares one melspectrogram + embedding backbone across phrases — so a new phrase
+is a single small file. The Kotlin port in `assistant/wakeword/OpenWakeWordEngine.kt` was
+validated **bit-exact** against the reference Python implementation (identical input audio
+→ score correlation 1.000000, max absolute difference 0.00, identical mel buffers).
+
+Models in `app/src/main/assets/models/` (16 kHz mono input):
+
+| File | Size | Role |
+|---|---|---|
+| `melspectrogram.tflite` | 745 KiB | audio → mel features *(shared)* |
+| `embedding_model.tflite` | 1.27 MiB | mel → embedding *(shared)* |
+| `hey_jarvis_v0.1.tflite` | 1.13 MiB | keyword head — **default phrase** |
+| `hey_mycroft_v0.1.tflite` | 840 KiB | keyword head |
+| `alexa_v0.1.tflite` | 835 KiB | keyword head |
+| `hey_rhasspy_v0.1.tflite` | 406 KiB | keyword head |
+| **Total** | **5.16 MiB (5.41 MB)** | |
+
+Default sensitivity **0.5 → threshold 0.525** (`threshold = 0.75 − 0.45 × sensitivity`),
+right at openWakeWord's documented working point.
+
+**APK impact:** the models are stored uncompressed (5.41 MB) plus the LiteRT native library
+for both ABIs (`libtensorflowlite_jni.so`, 3.48 MiB arm64 + 2.26 MiB armv7), so the release
+APK grows from **1.5 MB to 12.8 MB** (+11.33 MB — dex/code growth itself is ~0). An
+arm64-only build would land at ~10.5 MB at the cost of 32-bit devices.
+
+**Calibration:** open the Assistant screen, tap **Test wake word** and say your phrase out
+loud — the score updates live. Peaks should clear the displayed threshold with margin;
+nudge the slider until they do (or until false triggers stop, watch the wake-ups counter).
+
+### Replacing or retraining the wake phrase
+
+There is no pretrained "Hey Echo" model — the four bundled phrases are the ones
+openWakeWord publishes. To use your own phrase:
+
+1. Train it with the openWakeWord pipeline (it reuses the same shared backbone, so a
+   phrase costs only a small keyword-head file).
+2. Export it to TFLite and drop it into `app/src/main/assets/models/`
+   (`noCompress "tflite"` is already configured).
+3. Register it in `WakePhrase.BUNDLED`
+   (`app/src/main/java/com/voicedm/app/assistant/wakeword/WakeWordEngine.kt`) — one line —
+   and point `DEFAULT_ID` at it. That file is the single place the vocabulary lives.
+4. Any phrase trained with the stock pipeline fits the shapes the engine expects
+   (keyword head `[1,16,96]` → `[1,1]`); re-run **Test wake word** to re-calibrate the
+   threshold.
+
+### Stages 2–4 (roadmap)
+
+Stage 2 adds fixed-vocabulary command recognition and `CommandRouter` (synonyms editable
+in one file), Stage 3 wires the assistant into the conversation loop, Stage 4 tunes
+battery/notifications/debug tooling. The final command vocabulary is already listed on the
+Assistant screen.
+
+## Privacy
+
+* **No `INTERNET` permission.** It is not in the manifest, so nothing can leave the device
+  — not notifications, not transcripts, not audio, not telemetry.
+* **On-device speech only.** Wake detection runs the bundled TFLite models on the CPU;
+  transcriptions use Android's system speech recogniser (with an on-device-first
+  preference). No cloud speech APIs anywhere.
+* **No audio ever touches disk.** Microphone frames live in ring buffers in RAM for the
+  lifetime of the capture loop and are discarded; there is no recording, no cache, no
+  temp file.
+* **Message text stays in the process.** Notifications are parsed in memory and shown in
+  the in-app log; only *settings* (contact name, toggles, sensitivity, counters) are
+  persisted, in app-private DataStore.
+* The same rules apply to the conversation loop and the assistant alike — see the Privacy
+  card on the Assistant screen for the same statement in-app.
+
 ## Architecture
 
 ```
@@ -200,7 +338,14 @@ app/src/main/java/com/voicedm/app/
 │   ├── reply/                  # InlineReplySender (A), VoiceNoteSender (B)
 │   ├── VoiceDmAccessibilityService.kt  # Mode B
 │   └── WakeActivity.kt
-├── ui/                # Compose: onboarding, main screen, settings + ViewModels
+├── assistant/         # voice assistant (Stage 1: wake detector)
+│   ├── wakeword/      # WakeWordEngine + openWakeWord TFLite port, WakeTriggerPolicy, phrases
+│   ├── audio/         # EnergyVad, AudioSessionManager (sole mic owner), AssistantStateMachine
+│   ├── commands/      # vocabulary + synonyms in one file (router arrives in Stage 2)
+│   ├── AssistantService.kt      # microphone-type FGS: capture loop, notification, boot
+│   ├── AssistantBootReceiver.kt
+│   └── AssistantRuntime.kt      # assistant UI state store
+├── ui/                # Compose: onboarding, main screen, settings, assistant + ViewModels
 └── widget/ tile/      # home-screen widget, quick-settings tile
 ```
 
@@ -210,7 +355,11 @@ Design rules used throughout:
   objects; everything downstream works on plain data classes, which is why the parser and
   dedupe logic can be tested on the JVM without Robolectric.
 * **Single state owner.** The engine writes to `ConversationStore`; UI, widget, tile and
-  the persistent notification all read the same `StateFlow`.
+  the persistent notification all read the same `StateFlow`. The assistant mirrors the
+  pattern with `AssistantRuntimeStore`.
+* **One microphone owner.** `AudioSessionManager` is the only class that opens an
+  `AudioRecord`; the conversation loop and the assistant take turns through the state
+  machine instead of competing for the mic.
 * **No DI framework / no KSP / no Room.** `AppContainer` is ~30 lines and everything else
   is constructor-injected.
 
@@ -248,7 +397,7 @@ gh release create vX.Y.Z app/build/outputs/apk/release/app-release.apk \
 ./gradlew :app:testDebugUnitTest
 ```
 
-34 tests cover the parts that are easy to regress:
+71 tests cover the parts that are easy to regress:
 
 * `NotificationParserTest` — MessagingStyle vs. flat notifications, own-message filtering,
   media classification, group summaries, reply-action index, chat-name resolution.
@@ -256,6 +405,12 @@ gh release create vX.Y.Z app/build/outputs/apk/release/app-release.apk \
   on every re-post, window expiry, LRU capacity, cross-chat isolation.
 * `ChatMatcherTest` — normalization (case, whitespace, zero-width characters, trailing
   colons) and the deliberate *non*-fuzziness ("Jon" must never match "Jonathan").
+* `AssistantStateMachineTest` — every legal edge of the assistant state machine, the
+  single-retry limit, the wake gate during TTS, pause/focus/stop, invalid events as no-ops.
+* `EnergyVadTest` — silence keeps the gate closed, onset opens it within one frame,
+  hysteresis + hangover, and the noise floor never adapts to speech.
+* `WakeTriggerPolicyTest` — sensitivity→threshold mapping, patience, cooldown, VAD gating,
+  peak-hold smoothing, reset semantics.
 
 ## Known limitations
 
@@ -278,6 +433,35 @@ gh release create vX.Y.Z app/build/outputs/apk/release/app-release.apk \
    start a foreground service from a cold background state.
 7. **Confirm mode is off by default** (per the product decision: replies are sent without
    confirmation). Turn on *Ask before sending* if you want to hear the transcript first.
+8. **OEM battery killers.** Aggressive skins — Xiaomi (MIUI/HyperOS), Oppo/Realme
+   (ColorOS), Vivo, Samsung One UI — happily murder background microphone services. Allow
+   auto-start / "unrestricted" battery usage for VoiceDM and lock it out of task cleaners;
+   otherwise the assistant stops waking after a while. If it did, the **Resume listening**
+   notification restarts it in one tap.
+9. **Google Assistant hotword conflict.** Two detectors sharing one microphone will fight:
+   Google may steal the mic or react first. Turn off *Hey Google* detection
+   (Google Assistant settings → Hey Google & Voice Match) or pick a different bundled
+   phrase.
+10. **Noisy environments.** The energy gate and the model both degrade when everything
+    around you is loud — expect more misses and some false triggers; tune the sensitivity
+    slider (the wake-ups counter tells you if the new setting helps).
+11. **Always-on listening costs battery.** The VAD gate keeps idle cost low, but a
+    background mic + per-frame DSP is not free; the Assistant screen's live `% of one core`
+    readout shows the real cost on your device.
+
+---
+
+## Troubleshooting
+
+| Symptom | What to do |
+|---|---|
+| Wake phrase never fires | Assistant screen → **Test wake word**, speak in a quiet room, watch the score. Raise sensitivity until peaks clear the displayed threshold. Check the mic permission and battery exemption rows. |
+| Fires while the TV/conversation is on | Lower the sensitivity (threshold rises), watch the wake-ups counter to confirm the change helps. |
+| Works only while the app is open | See *limitations 8* (OEM battery managers) — grant auto-start / unrestricted battery to VoiceDM. |
+| "Hey Google" reacts too, or VoiceDM stops waking | See *limitations 9* — disable Google's hotword or change VoiceDM's phrase. |
+| Service stops after a while | Android 12+ restricts background microphone services; keep the battery exemption granted. The persistent notification's **Resume** button restarts the loop immediately. |
+| Notification not read aloud | Notification access granted, chat unmuted with notifications on, contact name matches exactly (see [Setup](#setup-first-run)). |
+| Command does nothing after the chime | Expected in Stage 1 — command recognition ships in Stage 2. |
 
 ---
 

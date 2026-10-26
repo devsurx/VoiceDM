@@ -139,4 +139,44 @@
     <string name="settings_not_granted">Not granted</string>
     <string name="settings_open">Open</string>
     <string name="settings_about">VoiceDM talks to one Instagram chat using only Android’s own notification, speech and accessibility features. No Instagram login, no unofficial APIs.</string>
+
+    <!-- Assistant (wake word) -->
+    <string name="assistant_title">Assistant</string>
+    <string name="assistant_subtitle">Say the wake phrase to control VoiceDM hands-free — even with the screen off.</string>
+    <string name="assistant_enable">Wake assistant</string>
+    <string name="assistant_enable_desc">Keeps a lightweight on-device listener running so the wake phrase works any time.</string>
+    <string name="assistant_state_idle">Listening for “%1$s”</string>
+    <string name="assistant_state_command">Listening for a command…</string>
+    <string name="assistant_state_executing">Working…</string>
+    <string name="assistant_state_speaking">Speaking…</string>
+    <string name="assistant_state_recording">Recording…</string>
+    <string name="assistant_state_paused">Paused</string>
+    <string name="assistant_state_stopped">Off</string>
+    <string name="assistant_phrase_section">Wake phrase</string>
+    <string name="assistant_sensitivity">Sensitivity</string>
+    <string name="assistant_sensitivity_low">Easier to wake</string>
+    <string name="assistant_sensitivity_high">Harder to wake</string>
+    <string name="assistant_test_hint">Tap, then say your wake phrase out loud. The score updates live.</string>
+    <string name="assistant_test">Test wake word</string>
+    <string name="assistant_live_score">score %1$.2f  ·  frame %2$.1f ms  ·  ~%3$.0f%% of one core</string>
+    <string name="assistant_wakeups">Wake-ups</string>
+    <string name="assistant_wakeups_hint">Counted so you can spot false triggers and tune sensitivity. Reset after testing.</string>
+    <string name="assistant_reset">Reset</string>
+    <string name="assistant_commands">Voice commands</string>
+    <string name="assistant_commands_hint">Recognition arrives in Stage 2; this is the final vocabulary.</string>
+    <string name="assistant_setup">Setup</string>
+    <string name="assistant_privacy_title">Privacy</string>
+    <string name="assistant_privacy">Everything runs on this device: tiny on-device models on the CPU, no cloud speech APIs, no audio saved to disk — and the app has no internet permission at all, so nothing could be uploaded.</string>
+    <string name="assistant_debug">Live detector</string>
+    <string name="assistant_open">Assistant</string>
+    <string name="assistant_notif_title">VoiceDM assistant</string>
+    <string name="assistant_notif_listening">Listening for “%1$s”</string>
+    <string name="assistant_notif_command">Listening for your command…</string>
+    <string name="assistant_notif_working">Working…</string>
+    <string name="assistant_notif_speaking">Speaking…</string>
+    <string name="assistant_notif_recording">Recording…</string>
+    <string name="assistant_notif_paused">Paused</string>
+    <string name="assistant_notif_resume">Tap to resume listening</string>
+    <string name="assistant_notif_action_pause">Pause</string>
+    <string name="assistant_notif_action_resume">Resume</string>
 </resources>

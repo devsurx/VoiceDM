@@ -17,6 +17,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Restart the assistant's wake-word service after a reboot (only if it was enabled). -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!--
       REQUEST_IGNORE_BATTERY_OPTIMIZATIONS is deliberately NOT declared: it is on Google's
       "restricted permission" list, it only exists to fire a single system dialog, and it is
@@ -68,6 +70,24 @@
             android:name=".service.VoiceDmService"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback|microphone" />
+
+        <!-- Always-on wake-word listener. Microphone-type FGS: the persistent notification
+             carries Pause/Resume, and the service refuses to start itself from the
+             background (Android 12+/14 rules) - it falls back to a tap-to-resume
+             notification instead. -->
+        <service
+            android:name=".assistant.AssistantService"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+
+        <receiver
+            android:name=".assistant.AssistantBootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".service.VoiceDmAccessibilityService"

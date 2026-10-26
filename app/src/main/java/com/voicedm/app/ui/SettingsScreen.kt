@@ -282,7 +282,7 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun SectionCard(title: String, content: @Composable ColumnScope.() -> Unit) {
+internal fun SectionCard(title: String, content: @Composable ColumnScope.() -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -391,7 +391,7 @@ private fun LanguageField(label: String, value: String, onChange: (String) -> Un
 }
 
 @Composable
-private fun PermissionRow(label: String, granted: Boolean, onOpen: () -> Unit) {
+internal fun PermissionRow(label: String, granted: Boolean, onOpen: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,

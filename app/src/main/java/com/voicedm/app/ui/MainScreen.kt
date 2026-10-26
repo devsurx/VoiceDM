@@ -65,6 +65,7 @@ import java.util.Date
 fun MainScreen(
     viewModel: MainViewModel,
     onOpenSettings: () -> Unit,
+    onOpenAssistant: () -> Unit,
     onOpenSetup: () -> Unit,
 ) {
     val ui by viewModel.ui.collectAsState()
@@ -104,6 +105,13 @@ fun MainScreen(
                         text = statusLabel(conversation.phase, conversation.errorMessage),
                         style = MaterialTheme.typography.bodyMedium,
                         color = statusColor(conversation.phase),
+                    )
+                }
+                IconButton(onClick = onOpenAssistant) {
+                    Icon(
+                        imageVector = Mic,
+                        contentDescription = stringResource(R.string.assistant_open),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 IconButton(onClick = onOpenSettings) {
