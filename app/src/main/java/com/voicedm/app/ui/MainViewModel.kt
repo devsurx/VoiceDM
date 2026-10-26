@@ -85,14 +85,29 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
     fun send(context: Context) = VoiceDmService.send(context)
     fun discard(context: Context) = VoiceDmService.discard(context)
 
+    /**
+     * Opens the battery-optimisation list so the user can exempt VoiceDM.
+     *
+     * Uses the plain settings page rather than ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS:
+     * that intent requires a restricted permission whose only job is to show one dialog, and
+     * declaring it is a common trigger for install-time permission warnings. No permission
+     * is needed to open the settings page or to *read* whether we're already exempt.
+     */
     fun requestBatteryExemption(context: Context) {
-        runCatching {
-            context.startActivity(
-                Intent(
-                    Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                    Uri.parse("package:${context.packageName}"),
-                ),
-            )
+        val opened = runCatching {
+            context.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+            true
+        }.getOrDefault(false)
+        if (!opened) {
+            // OEM fallback: the app's own details page, where the toggle lives on some skins.
+            runCatching {
+                context.startActivity(
+                    Intent(
+                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.parse("package:${context.packageName}"),
+                    ),
+                )
+            }
         }
         refresh()
     }

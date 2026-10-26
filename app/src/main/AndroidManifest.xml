@@ -17,7 +17,13 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <!--
+      REQUEST_IGNORE_BATTERY_OPTIMIZATIONS is deliberately NOT declared: it is on Google's
+      "restricted permission" list, it only exists to fire a single system dialog, and it is
+      a common trigger for install-time warnings. We open the battery-optimisation settings
+      page instead (ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS), which needs no permission
+      and works on every OEM skin.
+    -->
     <!-- Mode B: driving Instagram itself (opt-in only). Declared as required by the
          accessibility <service> binding, but the app never holds the BIND_* form. -->
 

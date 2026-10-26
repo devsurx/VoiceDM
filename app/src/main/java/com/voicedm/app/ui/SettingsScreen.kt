@@ -252,13 +252,20 @@ fun SettingsScreen(
                     label = stringResource(R.string.settings_perm_battery),
                     granted = permissions.batteryOptimizationExempt(),
                     onOpen = {
+                        // No permission needed for the settings page (see MainViewModel).
                         runCatching {
                             context.startActivity(
-                                Intent(
-                                    Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                                    android.net.Uri.parse("package:${context.packageName}"),
-                                ),
+                                Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS),
                             )
+                        }.onFailure {
+                            runCatching {
+                                context.startActivity(
+                                    Intent(
+                                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                        android.net.Uri.parse("package:${context.packageName}"),
+                                    ),
+                                )
+                            }
                         }
                     },
                 )
