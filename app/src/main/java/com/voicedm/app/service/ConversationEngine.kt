@@ -84,12 +84,19 @@ class ConversationEngine(
         startedAtMs = System.currentTimeMillis()
         var first = true
         while (scope.isActive) {
+            val cfg = currentSettings()
             val oldestAllowed = if (first) {
                 first = false
-                pending.oldestAllowed(currentSettings().catchUpOnStart, startedAtMs)
+                pending.oldestAllowed(cfg.catchUpOnStart, startedAtMs)
             } else {
                 Long.MIN_VALUE
             }
+
+            if (cfg.soloYapMode) {
+                soloYap(oldestAllowed)
+                continue
+            }
+
             for (message in pending.drain(oldestAllowed)) {
                 process(message)
             }
@@ -101,6 +108,103 @@ class ConversationEngine(
                 }
             }
         }
+    }
+
+    // ------------------------------------------------------------------ solo yap
+
+    /**
+     * Solo yap mode: a one-way monologue. Incoming messages are only written to the
+     * log - never spoken - while the engine records and sends voice notes back to
+     * back. The loop ends when the user pauses it (Skip), a send fails, the contact
+     * is missing, or the service stops; [awaitYapTrigger] then waits for the next
+     * Reply/headset/main-screen trigger before yapping again.
+     */
+    private suspend fun soloYap(oldestAllowed: Long) {
+        store.log(direction = LogDirection.SYSTEM, text = "Solo yap - speak after each beep")
+        while (scope.isActive) {
+            for (message in pending.drain(oldestAllowed)) logQuietly(message)
+            if (drainCommands()) break
+            if (!scope.isActive) return
+
+            val cfg = currentSettings()
+            if (cfg.targetChatName.isBlank()) {
+                store.log(direction = LogDirection.SYSTEM, text = "Pick a contact first")
+                store.setPhase(ConversationPhase.ERROR, "No contact selected")
+                break
+            }
+            if (!soloYapCycle(cfg)) break
+        }
+        if (!scope.isActive) return
+        if (store.state.value.phase == ConversationPhase.YAPPING) {
+            store.setPhase(ConversationPhase.WAITING)
+        }
+        awaitYapTrigger()
+    }
+
+    /** Waits in WAITING until the user asks for the next note (or the service dies). */
+    private suspend fun awaitYapTrigger() {
+        while (scope.isActive) {
+            var triggered = false
+            select<Unit> {
+                messageSignals.onReceive { }
+                commands.onReceive { command ->
+                    if (command == EngineCommand.LISTEN) triggered = true
+                }
+            }
+            for (message in pending.drain(Long.MIN_VALUE)) logQuietly(message)
+            if (triggered) return
+        }
+    }
+
+    /** One beep -> hold-the-record-button -> send cycle. False when it failed. */
+    private suspend fun soloYapCycle(cfg: AppSettings): Boolean {
+        focus.request()
+        try {
+            store.setPhase(ConversationPhase.YAPPING)
+            beeps.play(Beep.LISTENING, force = true)
+            delay(BEEP_LEAD_IN_MS)
+
+            val result = voiceNote.recordAndSend(
+                cfg.targetChatName,
+                cfg.voiceNoteHoldSeconds * 1000L,
+            )
+            if (!report(result, "Voice message", MessageKind.VOICE_NOTE)) return false
+            delay(YAP_GAP_MS)
+            return true
+        } finally {
+            focus.abandon()
+        }
+    }
+
+    /** Consumes commands queued while a cycle ran; true when the user paused the loop. */
+    private fun drainCommands(): Boolean {
+        var paused = false
+        while (true) {
+            when (commands.tryReceive().getOrNull()) {
+                null -> return paused
+                EngineCommand.SKIP -> paused = true
+                else -> Unit
+            }
+        }
+    }
+
+    /** Solo yap: record the incoming line in the log without ever speaking it. */
+    private fun logQuietly(message: IncomingMessage) {
+        if (echoGuard.isEcho(message)) return
+        val displayed = message.message.text
+            ?: Announcements.incoming(
+                kind = message.message.kind,
+                text = null,
+                senderName = message.message.senderName,
+                announceSender = false,
+            )
+        val entry = store.log(
+            direction = LogDirection.INCOMING,
+            text = displayed,
+            kind = message.message.kind,
+            timeMs = message.receivedAtMs,
+        )
+        store.setCurrent(entry)
     }
 
     // ------------------------------------------------------------------ one message
@@ -375,6 +479,7 @@ class ConversationEngine(
         const val ERROR_PAUSE_MS = 1_500L
         const val SKIP_PAUSE_MS = 400L
         const val BEEP_LEAD_IN_MS = 250L
+        const val YAP_GAP_MS = 400L
         const val MAX_REREADS = 2
     }
 }

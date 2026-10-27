@@ -354,6 +354,9 @@ private fun ContextualActions(
         ConversationPhase.LISTENING, ConversationPhase.SENDING ->
             listOf(stringResource(R.string.main_skip) to onSkip)
 
+        ConversationPhase.YAPPING ->
+            listOf(stringResource(R.string.main_pause) to onSkip)
+
         ConversationPhase.CONFIRMING -> listOf(
             stringResource(R.string.main_send) to onSend,
             stringResource(R.string.main_discard) to onDiscard,
@@ -453,6 +456,7 @@ private fun statusLabel(phase: ConversationPhase, errorMessage: String?): String
     ConversationPhase.READING -> stringResource(R.string.status_reading)
     ConversationPhase.LISTENING -> stringResource(R.string.status_listening)
     ConversationPhase.CONFIRMING -> stringResource(R.string.status_confirming)
+    ConversationPhase.YAPPING -> stringResource(R.string.status_yapping)
     ConversationPhase.SENDING -> stringResource(R.string.status_sending)
     ConversationPhase.SENT -> stringResource(R.string.status_sent)
     ConversationPhase.SKIPPED -> stringResource(R.string.status_skipped)

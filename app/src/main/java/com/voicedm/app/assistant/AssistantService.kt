@@ -284,7 +284,8 @@ class AssistantService : Service() {
         conversationWatch = scope.launch {
             container.conversation.state.collectLatest { conv ->
                 val busy = conv.isRunning && (conv.phase == ConversationPhase.READING ||
-                    conv.phase == ConversationPhase.LISTENING)
+                    conv.phase == ConversationPhase.LISTENING ||
+                    conv.phase == ConversationPhase.YAPPING)
                 if (busy != conversationYields) {
                     conversationYields = busy
                     reconcilePause(if (busy) "conversation took audio" else "conversation released audio")

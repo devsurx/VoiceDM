@@ -36,6 +36,11 @@ data class NotificationSnapshot(
      * filtered out of the MessagingStyle list.
      */
     val selfDisplayName: String? = null,
+    /**
+     * EXTRA_IS_GROUP_CONVERSATION. True for group chats, whose name is the conversation
+     * title; false/absent for one-to-one chats, where the other person is the sender.
+     */
+    val isGroupConversation: Boolean = false,
     /** FLAG_GROUP_SUMMARY, never a real message. */
     val isGroupSummary: Boolean = false,
     /** Actions that carry a RemoteInput, i.e. possible inline-reply targets. */

@@ -182,6 +182,19 @@ fun SettingsScreen(
                     )
                 }
                 ToggleRow(
+                    title = stringResource(R.string.settings_solo_yap),
+                    subtitle = stringResource(R.string.settings_solo_yap_desc),
+                    checked = settings.soloYapMode,
+                    onChange = { value -> viewModel.update { it.copy(soloYapMode = value) } },
+                )
+                if (settings.soloYapMode && !permissions.accessibilityEnabled()) {
+                    Text(
+                        text = stringResource(R.string.settings_mode_b_missing),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+                ToggleRow(
                     title = stringResource(R.string.settings_confirm),
                     subtitle = stringResource(R.string.settings_confirm_desc),
                     checked = settings.confirmBeforeSend,

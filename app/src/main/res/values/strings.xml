@@ -46,6 +46,7 @@
     <string name="status_reading">Reading…</string>
     <string name="status_listening">Listening…</string>
     <string name="status_confirming">Confirm the reply</string>
+    <string name="status_yapping">Yapping…</string>
     <string name="status_sending">Sending…</string>
     <string name="status_sent">Sent</string>
     <string name="status_skipped">Nothing heard, skipped</string>
@@ -86,6 +87,7 @@
     <string name="main_stop">Stop</string>
     <string name="main_log_empty">Messages you receive will show up here.</string>
     <string name="main_skip">Skip</string>
+    <string name="main_pause">Pause</string>
     <string name="main_repeat">Repeat</string>
     <string name="main_listen">Reply now</string>
     <string name="main_send">Send</string>
@@ -128,6 +130,8 @@
     <string name="settings_announce">Announce who is talking</string>
     <string name="settings_retry">Retry once when nothing was heard</string>
     <string name="settings_catchup">Read messages that arrived while stopped</string>
+    <string name="settings_solo_yap">Solo yap mode</string>
+    <string name="settings_solo_yap_desc">Only you talk: beep, speak, send, repeat until you pause. Their replies stay in the log and are never read aloud.</string>
     <string name="settings_section_speech">Voice</string>
     <string name="settings_tts_rate">Reading speed</string>
     <string name="settings_tts_rate_value">%1$.1f×</string>

@@ -35,6 +35,7 @@ internal fun StatusBarNotification.toSnapshot(): NotificationSnapshot {
         messages = extras.readMessages(),
         hasPicture = extras.getParcelable<Uri>(Notification.EXTRA_PICTURE) != null,
         selfDisplayName = extras.getCharSequence(Notification.EXTRA_SELF_DISPLAY_NAME)?.toString(),
+        isGroupConversation = extras.getBoolean(Notification.EXTRA_IS_GROUP_CONVERSATION, false),
         isGroupSummary = notification.flags and Notification.FLAG_GROUP_SUMMARY != 0,
         replyActions = notification.readReplyActions(),
         category = notification.category,

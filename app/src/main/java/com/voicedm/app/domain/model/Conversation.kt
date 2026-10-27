@@ -32,6 +32,9 @@ enum class ConversationPhase {
     /** Waiting for you to confirm a transcript before sending (confirm mode). */
     CONFIRMING,
 
+    /** Solo yap: recording a voice note to send without reading anything back. */
+    YAPPING,
+
     /** Handing the reply to Instagram. */
     SENDING,
 

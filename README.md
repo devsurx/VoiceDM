@@ -165,6 +165,7 @@ When you select Mode B in Settings (and enable the accessibility service):
 | Contact | The only chat VoiceDM answers — type it, tap a recently-seen chat, **Use last notification** (fills from the newest notification) or **Clear** |
 | Nickname | Display name shown instead of the chat name (title, notification, widget, tile); replies still use the real name |
 | Mode A / Mode B | Reply delivery: notification inline-reply vs. Instagram voice note |
+| Solo yap mode | One-way monologue: beep → record → send → repeat until you pause. Incoming replies are logged but never read aloud (needs the Mode B accessibility service) |
 | Ask before sending | Speak the transcript back; send only on confirmation (Send/Discard in app or notification) |
 | Listen automatically after reading | Turn off to trigger listening with the headset button or the notification's *Reply* action |
 | Headset button controls the loop | Play/pause/media keys skip, repeat or start listening |

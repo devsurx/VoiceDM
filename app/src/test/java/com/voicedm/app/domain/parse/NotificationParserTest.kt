@@ -18,6 +18,7 @@ class NotificationParserTest {
         messagingUserName: String? = null,
         messages: List<StyleMessage> = emptyList(),
         selfDisplayName: String? = null,
+        isGroupConversation: Boolean = false,
         hasPicture: Boolean = false,
         isGroupSummary: Boolean = false,
         replyActions: List<ReplyActionInfo> = emptyList(),
@@ -37,6 +38,7 @@ class NotificationParserTest {
         messages = messages,
         hasPicture = hasPicture,
         selfDisplayName = selfDisplayName,
+        isGroupConversation = isGroupConversation,
         isGroupSummary = isGroupSummary,
         replyActions = replyActions,
     )
@@ -230,6 +232,93 @@ class NotificationParserTest {
     fun `trailing colon in the title is trimmed`() {
         val name = NotificationParser.resolveChatName(snapshot(title = "Jane Doe:"))
         assertEquals("Jane Doe", name)
+    }
+
+    @Test
+    fun `own username in the conversation title loses to the other person`() {
+        // Live shape of an Instagram 1:1: EXTRA_CONVERSATION_TITLE holds our own
+        // handle while every message comes from the other side.
+        val name = NotificationParser.resolveChatName(
+            snapshot(
+                title = "sr.x_l: shaurya",
+                conversationTitle = "sr.x_l",
+                selfDisplayName = "surx.",
+                messagingUserName = "surx.",
+                messages = listOf(
+                    StyleMessage("Lwk", "shaurya", 10_000L),
+                    StyleMessage("Tf is elvish yaadav doing", "shaurya", 11_000L),
+                ),
+            ),
+        )
+        assertEquals("shaurya", name)
+    }
+
+    @Test
+    fun `own name in the title is skipped for a one to one chat`() {
+        val name = NotificationParser.resolveChatName(
+            snapshot(
+                title = "surx.",
+                text = "shaurya: hello there",
+                selfDisplayName = "surx.",
+            ),
+        )
+        assertEquals("shaurya", name)
+    }
+
+    @Test
+    fun `group conversation is named by its title, not its members`() {
+        val name = NotificationParser.resolveChatName(
+            snapshot(
+                conversationTitle = "Squad",
+                selfDisplayName = "Me",
+                isGroupConversation = true,
+                messages = listOf(
+                    StyleMessage("a", "Jane", 1L),
+                    StyleMessage("b", "John", 2L),
+                ),
+            ),
+        )
+        assertEquals("Squad", name)
+    }
+
+    @Test
+    fun `two distinct senders without the group flag still prefer the title`() {
+        val name = NotificationParser.resolveChatName(
+            snapshot(
+                conversationTitle = "Squad",
+                selfDisplayName = "Me",
+                messages = listOf(
+                    StyleMessage("a", "Jane", 1L),
+                    StyleMessage("b", "John", 2L),
+                ),
+            ),
+        )
+        assertEquals("Squad", name)
+    }
+
+    @Test
+    fun `one to one without any usable title falls back to the sender`() {
+        val name = NotificationParser.resolveChatName(
+            snapshot(
+                title = "Instagram",
+                selfDisplayName = "Me",
+                messages = listOf(StyleMessage("hi", "shaurya", 1L)),
+            ),
+        )
+        assertEquals("shaurya", name)
+    }
+
+    @Test
+    fun `self only conversation falls back to its own title`() {
+        val name = NotificationParser.resolveChatName(
+            snapshot(
+                conversationTitle = "surx.",
+                title = "surx.",
+                selfDisplayName = "surx.",
+                messages = listOf(StyleMessage("note to self", "surx.", 1L)),
+            ),
+        )
+        assertEquals("surx.", name)
     }
 
     @Test

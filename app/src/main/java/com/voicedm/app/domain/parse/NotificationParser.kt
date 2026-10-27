@@ -81,15 +81,54 @@ object NotificationParser {
         )
     }
 
-    /** The chat a notification belongs to, or null when it does not name one. */
+    /**
+     * The chat a notification belongs to, or null when it does not name one.
+     *
+     * Instagram is free to fill EXTRA_CONVERSATION_TITLE (and even EXTRA_TITLE) with our
+     * own name/username, so every title candidate is checked against the notification's
+     * self identity first. In a one-to-one chat the person we are talking to is simply
+     * the only message sender who is not us - that derivation wins before the titles.
+     */
     fun resolveChatName(snapshot: NotificationSnapshot): String? {
-        snapshot.conversationTitle.asChatName()?.let { return it }
-        snapshot.title.asChatName()?.let { return it }
-        snapshot.subText.asChatName()?.let { return it }
+        val self = selfNames(snapshot)
+        val senders = otherSenders(snapshot, self)
+
+        // Groups are named by the conversation, never by whichever member spoke last.
+        if (snapshot.isGroupConversation || senders.distinct().size > 1) {
+            snapshot.conversationTitle.notSelf(self)?.let { return it }
+            snapshot.title.notSelf(self)?.let { return it }
+        }
+
+        // One-to-one: the other side of the thread is the only non-self sender.
+        senders.mostCommon()?.let { return it }
+
+        snapshot.conversationTitle.notSelf(self)?.let { return it }
+        snapshot.title.notSelf(self)?.let { return it }
+        snapshot.subText.notSelf(self)?.let { return it }
         val flat = snapshot.bigText ?: snapshot.text
-        flat?.let { senderPrefixOf(it) }?.takeIf { it.isNotBlank() }?.let { return it }
-        return null
+        flat?.let { senderPrefixOf(it) }?.notSelf(self)?.let { return it }
+
+        // Nothing but our own name was available (a chat with yourself): keep the old
+        // behaviour rather than dropping the notification entirely.
+        return snapshot.conversationTitle.asChatName()
+            ?: snapshot.title.asChatName()
+            ?: snapshot.subText.asChatName()
     }
+
+    /** Names the notification uses for *us* - never the person we are talking to. */
+    private fun selfNames(snapshot: NotificationSnapshot): Set<String> =
+        listOf(snapshot.selfDisplayName, snapshot.messagingUserName, "you", "me")
+            .mapNotNull { it?.trim()?.takeIf { value -> value.isNotEmpty() } }
+            .mapTo(mutableSetOf()) { it.lowercase() }
+
+    /** Senders of the style messages that were written by the other side. */
+    private fun otherSenders(snapshot: NotificationSnapshot, self: Set<String>): List<String> =
+        snapshot.messages
+            .mapNotNull { message -> message.sender?.trim()?.takeIf { it.isNotEmpty() } }
+            .filterNot { it.lowercase() in self }
+
+    private fun List<String>.mostCommon(): String? =
+        groupingBy { it }.eachCount().maxByOrNull { it.value }?.key
 
     private fun parseStyle(snapshot: NotificationSnapshot, chatName: String): List<ParsedMessage> {
         val lastIndex = snapshot.messages.lastIndex
@@ -193,6 +232,10 @@ object NotificationParser {
         if (value.lowercase() in APP_TITLES) return null
         return value.trimEnd(':').trim().takeIf { it.isNotEmpty() }
     }
+
+    /** A title candidate, rejected when it names us rather than the other person. */
+    private fun String?.notSelf(self: Set<String>): String? =
+        asChatName()?.takeIf { it.lowercase() !in self }
 
     private fun String?.asSender(): String? = this?.trim()?.takeIf { it.isNotEmpty() }
 }

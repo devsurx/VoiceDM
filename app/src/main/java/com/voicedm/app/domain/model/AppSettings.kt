@@ -40,6 +40,11 @@ data class AppSettings(
     val catchUpOnStart: Boolean = true,
     /** How long Mode B holds Instagram's record button, in seconds. */
     val voiceNoteHoldSeconds: Int = DEFAULT_VOICE_NOTE_HOLD_SECONDS,
+    /**
+     * Solo yap: a one-way monologue. Incoming messages are only logged - never read
+     * aloud - and the engine records and sends voice notes back to back until paused.
+     */
+    val soloYapMode: Boolean = false,
 
     // --- voice assistant (Stage 1: wake word + foreground service) -------------------
     /** Assistant enabled: keep the wake-word service running. */

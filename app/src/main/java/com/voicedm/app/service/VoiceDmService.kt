@@ -243,6 +243,7 @@ class VoiceDmService : LifecycleService() {
         when (state.phase) {
             ConversationPhase.READING,
             ConversationPhase.LISTENING,
+            ConversationPhase.YAPPING,
             -> builder.addAction(
                 0,
                 getString(R.string.notif_action_skip),
@@ -283,6 +284,7 @@ class VoiceDmService : LifecycleService() {
         ConversationPhase.READING -> getString(R.string.status_reading)
         ConversationPhase.LISTENING -> getString(R.string.status_listening)
         ConversationPhase.CONFIRMING -> getString(R.string.status_confirming)
+        ConversationPhase.YAPPING -> getString(R.string.status_yapping)
         ConversationPhase.SENDING -> getString(R.string.status_sending)
         ConversationPhase.SENT -> getString(R.string.status_sent)
         ConversationPhase.SKIPPED -> getString(R.string.status_skipped)
@@ -343,6 +345,7 @@ class VoiceDmService : LifecycleService() {
                 ConversationPhase.READING -> EngineCommand.SKIP
                 ConversationPhase.CONFIRMING -> EngineCommand.SEND
                 ConversationPhase.LISTENING -> return@launch // cancelled by its own timeout
+                ConversationPhase.YAPPING -> EngineCommand.SKIP // pause the solo loop
                 else -> EngineCommand.LISTEN
             }
             engine?.post(command)
