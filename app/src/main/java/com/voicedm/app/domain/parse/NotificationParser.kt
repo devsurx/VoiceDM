@@ -78,6 +78,7 @@ object NotificationParser {
             chatName = chatName,
             messages = messages,
             replyActionIndex = snapshot.replyActions.firstOrNull()?.index ?: ParsedChat.NO_REPLY_ACTION,
+            threadId = snapshot.threadId,
         )
     }
 

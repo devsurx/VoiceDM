@@ -64,12 +64,27 @@ class OnboardingViewModel(private val container: AppContainer) : ViewModel() {
     fun setChatName(name: String) {
         _ui.value = _ui.value.copy(chatName = name)
         viewModelScope.launch {
-            container.settings.update { it.copy(targetChatName = name.trim()) }
+            container.settings.update {
+                it.copy(targetChatName = name.trim(), targetThreadId = "")
+            }
+        }
+    }
+
+    /** Tap-to-pick, anchored to the chat's Instagram thread id. */
+    fun pickChat(chat: DiscoveredChat) {
+        _ui.value = _ui.value.copy(chatName = chat.name)
+        viewModelScope.launch {
+            container.settings.update {
+                it.copy(
+                    targetChatName = chat.name.trim(),
+                    targetThreadId = chat.threadId.orEmpty(),
+                )
+            }
         }
     }
 
     /** One-tap fill from the newest Instagram notification VoiceDM has seen. */
     fun pickLatestChat() {
-        container.discoveredChats.chats.value.firstOrNull()?.let { setChatName(it.name) }
+        container.discoveredChats.chats.value.firstOrNull()?.let(::pickChat)
     }
 }

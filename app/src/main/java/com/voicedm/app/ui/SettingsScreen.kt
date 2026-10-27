@@ -41,6 +41,7 @@ import com.voicedm.app.BuildConfig
 import com.voicedm.app.R
 import com.voicedm.app.domain.model.AppSettings
 import com.voicedm.app.domain.model.ReplyMode
+import com.voicedm.app.domain.parse.ChatMatcher
 import com.voicedm.app.ui.theme.VoiceDmTheme
 import java.util.Locale
 
@@ -127,12 +128,35 @@ fun SettingsScreen(
                         Text(stringResource(R.string.settings_contact_clear))
                     }
                 }
+                // Live check: does the current pick match the newest notification
+                // VoiceDM has seen? Green means the loop will answer that chat.
+                val newest = discovered.firstOrNull()
+                val willReply = newest != null && ChatMatcher.matches(
+                    target = settings.targetChatName,
+                    targetThreadId = settings.targetThreadId,
+                    actualName = newest.name,
+                    actualThreadId = newest.threadId,
+                )
                 Text(
-                    text = discovered.firstOrNull()?.let {
-                        stringResource(R.string.settings_contact_newest, it.name)
-                    } ?: stringResource(R.string.settings_contact_waiting),
+                    text = when {
+                        settings.targetChatName.isBlank() ->
+                            stringResource(R.string.settings_contact_pick_hint)
+
+                        newest == null -> stringResource(R.string.settings_contact_waiting)
+                        willReply ->
+                            stringResource(R.string.settings_contact_will_reply, newest.name)
+
+                        else ->
+                            stringResource(R.string.settings_contact_wont_reply, newest.name)
+                    },
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = when {
+                        settings.targetChatName.isBlank() ->
+                            MaterialTheme.colorScheme.onSurfaceVariant
+
+                        willReply -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.error
+                    },
                 )
                 if (discovered.isNotEmpty()) {
                     Text(
@@ -141,20 +165,33 @@ fun SettingsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     discovered.forEach { chat ->
+                        val chosen = ChatMatcher.matches(
+                            target = settings.targetChatName,
+                            targetThreadId = settings.targetThreadId,
+                            actualName = chat.name,
+                            actualThreadId = chat.threadId,
+                        )
                         OutlinedButton(
-                            onClick = { viewModel.setContact(chat.name) },
+                            onClick = { viewModel.pickChat(chat) },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(14.dp),
                         ) {
                             Text(
                                 text = chat.name,
-                                modifier = Modifier.fillMaxWidth(),
-                                color = if (chat.name.trim() == settings.targetChatName.trim()) {
+                                modifier = Modifier.weight(1f),
+                                color = if (chosen) {
                                     MaterialTheme.colorScheme.primary
                                 } else {
                                     MaterialTheme.colorScheme.onSurface
                                 },
                             )
+                            if (chosen) {
+                                Text(
+                                    text = "\u2713",
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
                         }
                     }
                 }

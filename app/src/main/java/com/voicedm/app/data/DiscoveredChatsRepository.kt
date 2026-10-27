@@ -18,6 +18,8 @@ data class DiscoveredChat(
     val name: String,
     val lastSeenMs: Long,
     val messageCount: Int,
+    /** Instagram's stable thread id when the notification carried one; anchors a pick. */
+    val threadId: String? = null,
 )
 
 private val Context.discoveredChatsStore: DataStore<Preferences> by preferencesDataStore(name = "voicedm_discovered")
@@ -38,7 +40,7 @@ class DiscoveredChatsRepository(
         scope.launch { load() }
     }
 
-    fun record(chatName: String) {
+    fun record(chatName: String, threadId: String? = null) {
         val name = chatName.trim()
         if (name.isEmpty()) return
         val key = normalize(name)
@@ -51,9 +53,10 @@ class DiscoveredChatsRepository(
                 name = name,
                 lastSeenMs = now,
                 messageCount = previous.messageCount + 1,
+                threadId = threadId ?: previous.threadId,
             )
         } else {
-            current += DiscoveredChat(name, now, 1)
+            current += DiscoveredChat(name, now, 1, threadId)
         }
         val next = current.sortedByDescending { it.lastSeenMs }.take(MAX_CHATS)
         _chats.value = next
@@ -66,11 +69,16 @@ class DiscoveredChatsRepository(
             .mapNotNull { (rawKey, value) ->
                 val key = rawKey.name
                 if (!key.startsWith(PREFIX)) return@mapNotNull null
-                val parts = (value as? String)?.split(';', limit = 3) ?: return@mapNotNull null
-                if (parts.size != 3) return@mapNotNull null
+                val parts = (value as? String)?.split(';', limit = 4) ?: return@mapNotNull null
+                if (parts.size < 3) return@mapNotNull null
                 val lastSeen = parts[0].toLongOrNull() ?: return@mapNotNull null
                 val count = parts[1].toIntOrNull() ?: return@mapNotNull null
-                DiscoveredChat(name = parts[2], lastSeenMs = lastSeen, messageCount = count)
+                DiscoveredChat(
+                    name = parts[2],
+                    lastSeenMs = lastSeen,
+                    messageCount = count,
+                    threadId = parts.getOrNull(3)?.takeIf { it.isNotEmpty() },
+                )
             }
             .sortedByDescending { it.lastSeenMs }
             .take(MAX_CHATS)
@@ -82,8 +90,17 @@ class DiscoveredChatsRepository(
             context.discoveredChatsStore.edit { prefs ->
                 prefs.clear()
                 chats.forEach { chat ->
-                    prefs[stringPreferencesKey(PREFIX + normalize(chat.name))] =
-                        "${chat.lastSeenMs};${chat.messageCount};${chat.name}"
+                    prefs[stringPreferencesKey(PREFIX + normalize(chat.name))] = buildString {
+                        append(chat.lastSeenMs)
+                        append(';')
+                        append(chat.messageCount)
+                        append(';')
+                        append(chat.name)
+                        if (!chat.threadId.isNullOrEmpty()) {
+                            append(';')
+                            append(chat.threadId)
+                        }
+                    }
                 }
             }
         }

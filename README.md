@@ -162,7 +162,7 @@ When you select Mode B in Settings (and enable the accessibility service):
 
 | Setting | What it does |
 |---|---|
-| Contact | The only chat VoiceDM answers — type it, tap a recently-seen chat, **Use last notification** (fills from the newest notification) or **Clear** |
+| Contact | The only chat VoiceDM answers — type it, tap a recently-seen chat (**anchored** to that conversation's Instagram thread id, so a different display name can never redirect it), **Use last notification** (fills from the newest notification) or **Clear**; a live ✓/✗ line shows whether the newest seen chat matches your pick |
 | Nickname | Display name shown instead of the chat name (title, notification, widget, tile); replies still use the real name |
 | Mode A / Mode B | Reply delivery: notification inline-reply vs. Instagram voice note |
 | Solo yap mode | One-way monologue: beep → record → send → repeat until you pause. Incoming replies are logged but never read aloud (needs the Mode B accessibility service) |

@@ -48,6 +48,7 @@ class SettingsRepository(private val context: Context) {
             prefs[Keys.CATCH_UP] = next.catchUpOnStart
             prefs[Keys.VOICE_HOLD] = next.voiceNoteHoldSeconds
             prefs[Keys.SOLO_YAP] = next.soloYapMode
+            prefs[Keys.TARGET_THREAD] = next.targetThreadId
             prefs[Keys.ASSISTANT_ENABLED] = next.assistantEnabled
             prefs[Keys.ASSISTANT_PHRASE] = next.assistantPhraseId
             prefs[Keys.ASSISTANT_SENSITIVITY] = next.assistantSensitivity
@@ -73,6 +74,7 @@ private object Keys {
     val CATCH_UP = booleanPreferencesKey("catch_up")
     val VOICE_HOLD = intPreferencesKey("voice_hold")
     val SOLO_YAP = booleanPreferencesKey("solo_yap")
+    val TARGET_THREAD = stringPreferencesKey("target_thread")
     val ASSISTANT_ENABLED = booleanPreferencesKey("assistant_enabled")
     val ASSISTANT_PHRASE = stringPreferencesKey("assistant_phrase")
     val ASSISTANT_SENSITIVITY = floatPreferencesKey("assistant_sensitivity")
@@ -98,6 +100,7 @@ private fun Preferences.toSettings(): AppSettings = AppSettings(
     voiceNoteHoldSeconds = (this[Keys.VOICE_HOLD] ?: AppSettings.DEFAULT_VOICE_NOTE_HOLD_SECONDS)
         .coerceIn(3, 30),
     soloYapMode = this[Keys.SOLO_YAP] ?: false,
+    targetThreadId = this[Keys.TARGET_THREAD] ?: "",
     assistantEnabled = this[Keys.ASSISTANT_ENABLED] ?: false,
     assistantPhraseId = this[Keys.ASSISTANT_PHRASE] ?: AppSettings().assistantPhraseId,
     assistantSensitivity = (this[Keys.ASSISTANT_SENSITIVITY] ?: 0.5f).coerceIn(0f, 1f),

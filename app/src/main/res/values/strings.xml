@@ -115,7 +115,9 @@
     <string name="settings_nickname_help">Shown instead of the chat name throughout VoiceDM — matching and replies still use the real name.</string>
     <string name="settings_contact_use_last">Use last notification</string>
     <string name="settings_contact_clear">Clear</string>
-    <string name="settings_contact_newest">Newest seen: %1$s</string>
+    <string name="settings_contact_pick_hint">Type the chat exactly, or tap a seen chat below — your pick stays locked to that conversation.</string>
+    <string name="settings_contact_will_reply">Will reply to ‘%1$s’</string>
+    <string name="settings_contact_wont_reply">Newest chat ‘%1$s’ isn’t your contact — tap it below to switch.</string>
     <string name="settings_contact_waiting">No notifications seen yet — send yourself a DM on Instagram first.</string>
     <string name="settings_section_reply">Replies</string>
     <string name="settings_mode_a">Mode A · text reply</string>

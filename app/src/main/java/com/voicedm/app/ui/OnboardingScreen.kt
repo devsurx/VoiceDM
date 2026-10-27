@@ -41,6 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.voicedm.app.R
+import com.voicedm.app.data.DiscoveredChat
 import com.voicedm.app.ui.theme.VoiceDmTheme
 
 /**
@@ -148,6 +149,7 @@ fun OnboardingScreen(
                 3 -> ContactStep(
                     ui = ui,
                     onNameChange = viewModel::setChatName,
+                    onPick = viewModel::pickChat,
                     onUseLatest = viewModel::pickLatestChat,
                 )
             }
@@ -200,6 +202,7 @@ fun OnboardingScreen(
 private fun ContactStep(
     ui: OnboardingUi,
     onNameChange: (String) -> Unit,
+    onPick: (DiscoveredChat) -> Unit,
     onUseLatest: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -239,7 +242,7 @@ private fun ContactStep(
             )
             ui.discovered.forEach { chat ->
                 OutlinedButton(
-                    onClick = { onNameChange(chat.name) },
+                    onClick = { onPick(chat) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
                 ) {

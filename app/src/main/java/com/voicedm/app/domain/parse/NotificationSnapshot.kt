@@ -41,6 +41,12 @@ data class NotificationSnapshot(
      * title; false/absent for one-to-one chats, where the other person is the sender.
      */
     val isGroupConversation: Boolean = false,
+    /**
+     * Instagram's stable thread id, read from the notification tag
+     * (`direct|<mailbox>;thread_id:<id>`). Survives any renaming Instagram does to the
+     * visible chat title, so it can anchor the user's contact pick.
+     */
+    val threadId: String? = null,
     /** FLAG_GROUP_SUMMARY, never a real message. */
     val isGroupSummary: Boolean = false,
     /** Actions that carry a RemoteInput, i.e. possible inline-reply targets. */

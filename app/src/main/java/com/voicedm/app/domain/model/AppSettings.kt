@@ -45,6 +45,12 @@ data class AppSettings(
      * aloud - and the engine records and sends voice notes back to back until paused.
      */
     val soloYapMode: Boolean = false,
+    /**
+     * Instagram thread id the contact pick is anchored to ("" = match by name only).
+     * Set when the user taps a seen chat or when a name match proves which thread the
+     * typed contact belongs to; typing a new name clears it.
+     */
+    val targetThreadId: String = "",
 
     // --- voice assistant (Stage 1: wake word + foreground service) -------------------
     /** Assistant enabled: keep the wake-word service running. */

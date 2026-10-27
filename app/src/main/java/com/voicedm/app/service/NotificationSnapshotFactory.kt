@@ -11,6 +11,9 @@ import com.voicedm.app.domain.parse.NotificationSnapshot
 import com.voicedm.app.domain.parse.ReplyActionInfo
 import com.voicedm.app.domain.parse.StyleMessage
 
+/** Instagram's notification tag carries `direct|<mailbox>;thread_id:<id>`. */
+private val THREAD_ID = Regex("thread_id:([^|;]+)")
+
 /**
  * The only place that reads real Android notification objects.
  *
@@ -36,6 +39,7 @@ internal fun StatusBarNotification.toSnapshot(): NotificationSnapshot {
         hasPicture = extras.getParcelable<Uri>(Notification.EXTRA_PICTURE) != null,
         selfDisplayName = extras.getCharSequence(Notification.EXTRA_SELF_DISPLAY_NAME)?.toString(),
         isGroupConversation = extras.getBoolean(Notification.EXTRA_IS_GROUP_CONVERSATION, false),
+        threadId = THREAD_ID.find(key)?.groupValues?.get(1),
         isGroupSummary = notification.flags and Notification.FLAG_GROUP_SUMMARY != 0,
         replyActions = notification.readReplyActions(),
         category = notification.category,

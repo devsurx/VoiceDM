@@ -26,14 +26,28 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
         viewModelScope.launch { container.settings.update(transform) }
     }
 
-    fun setContact(name: String) = update { it.copy(targetChatName = name.trim()) }
+    /** Typing is name-matching: a fresh name drops any thread anchor from a tap. */
+    fun setContact(name: String) = update {
+        it.copy(targetChatName = name.trim(), targetThreadId = "")
+    }
+
+    /**
+     * One tap: pick a chat VoiceDM has seen, anchored to its Instagram thread id so
+     * later notifications match that exact conversation regardless of display name.
+     */
+    fun pickChat(chat: DiscoveredChat) = update {
+        it.copy(
+            targetChatName = chat.name.trim(),
+            targetThreadId = chat.threadId.orEmpty(),
+        )
+    }
 
     /**
      * One tap: overwrite the contact with the chat of the newest notification VoiceDM has
      * seen ([discovered] is kept sorted newest-first by DiscoveredChatsRepository).
      */
     fun useLastNotification() {
-        discovered.value.firstOrNull()?.let { setContact(it.name) }
+        discovered.value.firstOrNull()?.let(::pickChat)
     }
 
     /** Nickname keeps its spaces while typing; [com.voicedm.app.domain.model.displayContactName] trims on read. */

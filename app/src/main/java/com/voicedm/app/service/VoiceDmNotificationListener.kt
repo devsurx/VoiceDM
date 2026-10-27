@@ -29,16 +29,28 @@ class VoiceDmNotificationListener : NotificationListenerService() {
     @Volatile
     private var targetChat: String = ""
 
+    @Volatile
+    private var targetThread: String = ""
+
     override fun onCreate() {
         super.onCreate()
         container = VoiceDmApp.from(this).container
         scope.launch {
             container.settings.settings.collect { settings ->
                 val target = settings.targetChatName
+                val thread = settings.targetThreadId
                 if (target != targetChat) {
                     targetChat = target
+                    targetThread = thread
                     // New person selected: forget everything we knew about the old one.
                     container.pipeline.onTargetChanged()
+                    container.activeNotifications.clear()
+                    if (target.isNotBlank()) refreshExistingNotifications()
+                } else if (thread != targetThread) {
+                    // The pick got anchored (or un-anchored) to a thread: re-filter the
+                    // live notifications, but keep the queued messages - it is the same
+                    // person, just a stricter identity.
+                    targetThread = thread
                     container.activeNotifications.clear()
                     if (target.isNotBlank()) refreshExistingNotifications()
                 }
@@ -79,10 +91,29 @@ class VoiceDmNotificationListener : NotificationListenerService() {
         if (sbn.packageName != PermissionChecker.INSTAGRAM_PACKAGE) return
 
         val chat = NotificationParser.parse(sbn.toSnapshot()) ?: return
-        container.discoveredChats.record(chat.chatName)
+        container.discoveredChats.record(chat.chatName, chat.threadId)
 
-        if (!ChatMatcher.matches(targetChat, chat.chatName)) return
+        val matched = ChatMatcher.matches(targetChat, targetThread, chat.chatName, chat.threadId)
+        if (!matched) return
+
+        // First name match proves which thread the typed contact belongs to: pin the
+        // pick to it so later notifications keep matching even when Instagram shows a
+        // different display name for the same conversation.
+        val thread = chat.threadId
+        if (targetThread.isEmpty() && thread != null &&
+            ChatMatcher.matches(targetChat, chat.chatName)
+        ) {
+            scope.launch {
+                container.settings.update { it.copy(targetThreadId = thread) }
+            }
+        }
+
         container.activeNotifications.onPosted(chat.chatName, sbn)
+        // Matched by thread while Instagram named the chat differently: index the
+        // notification under the chosen name too, so the manual Reply path finds it.
+        if (thread != null && !ChatMatcher.matches(targetChat, chat.chatName)) {
+            container.activeNotifications.onPosted(targetChat, sbn)
+        }
 
         val now = System.currentTimeMillis()
         chat.messages.forEach { message ->

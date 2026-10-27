@@ -31,6 +31,8 @@ data class ParsedChat(
      * the sender still re-validates the live action before firing it.
      */
     val replyActionIndex: Int = NO_REPLY_ACTION,
+    /** Instagram's stable thread id for this chat, when the notification carried one. */
+    val threadId: String? = null,
 ) {
     companion object {
         const val NO_REPLY_ACTION = -1

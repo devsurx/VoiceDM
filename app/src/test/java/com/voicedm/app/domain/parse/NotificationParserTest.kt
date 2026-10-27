@@ -19,6 +19,7 @@ class NotificationParserTest {
         messages: List<StyleMessage> = emptyList(),
         selfDisplayName: String? = null,
         isGroupConversation: Boolean = false,
+        threadId: String? = null,
         hasPicture: Boolean = false,
         isGroupSummary: Boolean = false,
         replyActions: List<ReplyActionInfo> = emptyList(),
@@ -39,6 +40,7 @@ class NotificationParserTest {
         hasPicture = hasPicture,
         selfDisplayName = selfDisplayName,
         isGroupConversation = isGroupConversation,
+        threadId = threadId,
         isGroupSummary = isGroupSummary,
         replyActions = replyActions,
     )
@@ -319,6 +321,20 @@ class NotificationParserTest {
             ),
         )
         assertEquals("surx.", name)
+    }
+
+    @Test
+    fun `thread id from the notification tag is carried into the parsed chat`() {
+        val parsed = NotificationParser.parse(
+            snapshot(
+                conversationTitle = "Jane Doe",
+                threadId = "340282366841710301244259765539919755296",
+                messages = listOf(StyleMessage("yo", "Jane Doe", 1L)),
+            ),
+        )
+
+        assertNotNull(parsed)
+        assertEquals("340282366841710301244259765539919755296", parsed!!.threadId)
     }
 
     @Test

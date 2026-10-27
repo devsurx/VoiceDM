@@ -15,6 +15,28 @@ object ChatMatcher {
         return normalize(actual) == wanted
     }
 
+    /**
+     * The full pick: [targetThreadId], when set, pins the choice to that exact
+     * conversation - a notification from any other thread never matches, even if
+     * Instagram happens to show the same display name. Notifications without a
+     * readable thread id fall back to the name comparison, and a blank target
+     * never matches anything.
+     */
+    fun matches(
+        target: String,
+        targetThreadId: String,
+        actualName: String,
+        actualThreadId: String?,
+    ): Boolean {
+        if (target.isBlank()) return false
+        if (targetThreadId.isBlank()) return matches(target, actualName)
+        return when (actualThreadId) {
+            targetThreadId -> true
+            null -> matches(target, actualName)
+            else -> false
+        }
+    }
+
     fun normalize(value: String): String = value
         .trim()
         .lowercase()
